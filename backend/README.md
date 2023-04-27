@@ -6,3 +6,7 @@ commandes:
  Remove-Item "outdir_csv" -Recurse -Force; 
  npx hardhat run scripts/uniswapv2/netlist.ts          
   # --network localhost
+
+  get returned value
+
+  https://ethereum.stackexchange.com/questions/111916/hardhat-test-returns-transaction-instead-of-return-value

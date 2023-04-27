@@ -90,9 +90,9 @@ class AgentLiquidity {
         this.tokenA.approve(this.uniswapV2Router.address, amountADesired)
         this.tokenB.approve(this.uniswapV2Router.address, amountBDesired)
 
-        const tx = await this.uniswapV2Router.addLiquidity(this.tokenA, this.tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
+        const tx = await this.uniswapV2Router.addLiquidity(this.tokenA.address, this.tokenB.address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
 
-        const balances2 = await this.getBalance(this.lpToken.address)
+        const balances2 = await this.getBalance(this.wallet.address)
         const tokenA_balance2 = balances[0]
         const tokenB_balance2 = balances[1]
 
@@ -115,7 +115,7 @@ class AgentLiquidity {
 
         this.lpToken.approve(this.uniswapV2Router.address, liquidity)
 
-        const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA, this.tokenB, liquidity, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
+        const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA.address, this.tokenB.address, liquidity, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
 
         const balances2 = await this.getBalance(this.lpToken.address)
         const tokenA_balance2 = balances[0]

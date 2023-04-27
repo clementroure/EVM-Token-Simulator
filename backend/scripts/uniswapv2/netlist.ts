@@ -34,6 +34,7 @@ async function main() {
 
   const godWallet = await ethers.getImpersonatedSigner("0x7bBfecDCF7d0E7e5aA5fffA4593c26571824CB87");
 
+
   var currentBlock = (await ethers.provider.getBlock("latest")).number
   const simulationDuration = 10
   const endBlock = currentBlock + simulationDuration
@@ -88,13 +89,13 @@ async function main() {
   let agentSwap: AgentSwap[] = []
 
   for(let i =0; i<swapAgentNb; i++){
-    agentSwap.push(
-      new AgentSwap(
-        'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
-        normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
-        getStep, getCurrentBlock, setLiquidityPool, provider
-      )
-    )
+    // agentSwap.push(
+    //   new AgentSwap(
+    //     'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
+    //     normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
+    //     getStep, getCurrentBlock, setLiquidityPool, provider
+    //   )
+    // )
   }
 
   const agentLiquidity = new AgentLiquidity(
@@ -103,13 +104,21 @@ async function main() {
     getStep, getCurrentBlock, setLiquidityPool,
   );
 
+  // send tokens to agent
+  // const WETH_godWallet = new ethers.Contract(WETH_address, wethABI);
+  // WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18), {gasLimit: 100000})
+  // const UNI_godWallet = new ethers.Contract(UNI_address, uniABI);
+  // UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18), {gasLimit: 100000})
+  // console.log('ETH  ' + await provider.getBalance(accounts[10].address))
+
   while(currentBlock < endBlock){
 
     console.log(currentBlock)
 
     ///
 
-    await agentSwap[0].takeStep()
+    // await agentSwap[0].takeStep()
+    await agentLiquidity.takeStep()
 
     ///
 
@@ -118,7 +127,7 @@ async function main() {
 
     currentBlock = (await ethers.provider.getBlock("latest")).number
 
-    await sleep(100)
+    await sleep(1000)
   }
 }
 
