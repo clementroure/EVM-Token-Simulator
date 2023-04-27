@@ -1,0 +1,24 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@types/d3-random": "^3.0.1",
+    "@types/jest": "^29.5.1",
+    "@types/mocha": "^10.0.1",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.14.0",
+    "hardhat-test-utils": "^0.1.1",
+    "ts-node": "^10.9.1"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@typechain/hardhat": "^6.1.5",
+    "chai": "^4.3.7",
+    "csv-writer": "^1.6.0",
+    "d3-random": "^3.0.1",
+    "hardhat-gas-reporter": "^1.0.9",
+    "https": "^1.0.0",
+    "solidity-coverage": "^0.8.2"
+  }
+}
