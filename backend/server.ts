@@ -1,5 +1,5 @@
+// REST API - Called by the frontend to generate the simulation
 import express from "express";
-import https from 'https';
 import * as dotenv from "dotenv";
 dotenv.config();
 const app = express();

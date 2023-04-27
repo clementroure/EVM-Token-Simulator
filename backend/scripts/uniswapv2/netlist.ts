@@ -14,6 +14,7 @@ import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_add
 import {sleep} from '../../utils/other'
 import AgentLiquidity from "./agentLiquidity";
 
+// set the .csv path and headers
 const csvWriter = createCsvWriter({
   path: 'outdir_csv/data.csv',
   header: [
@@ -24,6 +25,8 @@ const csvWriter = createCsvWriter({
 
 async function main() {
 
+  // set the logs.txt path 
+  // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
   writeFile('outdir_csv/logs.txt', '', (err) => {
     if (err) throw err;
   })
@@ -32,16 +35,19 @@ async function main() {
 
   const provider = new ethers.providers.JsonRpcProvider()
 
+  // I unlock my MetaMask wallet. On Goerli, I have a few eth, weth and uni tokens
+  // The agents will be initialized with 1000 ETH but I have to fund them with other ERC-20 tokens
   const godWallet = await ethers.getImpersonatedSigner("0x7bBfecDCF7d0E7e5aA5fffA4593c26571824CB87");
-
 
   var currentBlock = (await ethers.provider.getBlock("latest")).number
   const simulationDuration = 10
   const endBlock = currentBlock + simulationDuration
 
   var step = 0;
+  // amount of token A and B in the liquidity pool weth / uni
   var liquidityPool = [0,0]
 
+  // 1 step = 1 day in the simulation
   function getStep (): number {
     return step;
   }
@@ -89,13 +95,13 @@ async function main() {
   let agentSwap: AgentSwap[] = []
 
   for(let i =0; i<swapAgentNb; i++){
-    // agentSwap.push(
-    //   new AgentSwap(
-    //     'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
-    //     normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
-    //     getStep, getCurrentBlock, setLiquidityPool, provider
-    //   )
-    // )
+    agentSwap.push(
+      new AgentSwap(
+        'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
+        normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
+        getStep, getCurrentBlock, setLiquidityPool, provider
+      )
+    )
   }
 
   const agentLiquidity = new AgentLiquidity(
@@ -104,7 +110,7 @@ async function main() {
     getStep, getCurrentBlock, setLiquidityPool,
   );
 
-  // send tokens to agent
+  // send tokens to agent ( I prefer fund them in their constructor() method )
   // const WETH_godWallet = new ethers.Contract(WETH_address, wethABI);
   // WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18), {gasLimit: 100000})
   // const UNI_godWallet = new ethers.Contract(UNI_address, uniABI);
@@ -115,19 +121,16 @@ async function main() {
 
     console.log(currentBlock)
 
-    ///
-
+    // CALL AGENTS MAIN METHOD
     // await agentSwap[0].takeStep()
     await agentLiquidity.takeStep()
 
-    ///
-
-    await block.advance(1)
-    step+=1;
+    await block.advance(1) // mine a block on the hardhat local fork. Transactions in the mempool are added
+    step+=1; 
 
     currentBlock = (await ethers.provider.getBlock("latest")).number
 
-    await sleep(1000)
+    await sleep(100) // wait for a few ms to let the program write in the .csv and logs.txt
   }
 }
 
