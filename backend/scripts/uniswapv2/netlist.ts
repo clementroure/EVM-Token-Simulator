@@ -31,9 +31,7 @@ async function main() {
     if (err) throw err;
   })
 
-  block.setAutomine(false)
-
-  const provider = new ethers.providers.JsonRpcProvider()
+  // block.setAutomine(false)
 
   // I unlock my MetaMask wallet. On Goerli, I have a few eth, weth and uni tokens
   // The agents will be initialized with 1000 ETH but I have to fund them with other ERC-20 tokens
@@ -72,24 +70,24 @@ async function main() {
   var poissonDistributionAgent = []
   var binomialDistributionAgent = []
   
-  for (let i = 0; i < simulationDuration; i++) {
+  for (let i = 0; i < 100; i++) {
     normalDistributionAgent.push(normal_distribution(0,2,1))
   }
-  poissonDistributionAgent = poisson_distribution(2,10)
-  binomialDistributionAgent = binomial_distribution(1,0.5,10)
+  poissonDistributionAgent = poisson_distribution(2,100)
+  binomialDistributionAgent = binomial_distribution(1,0.5,100)
 
   // console.log(normalDistributionAgent)
   // console.log(poissonDistributionAgent)
   // console.log(binomialDistributionAgent)
 
-  const UniswapV2Router = new ethers.Contract(uniswapV2Router_address, uniswapV2RouterABI, provider);
-  const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, provider);
+  const UniswapV2Router = new ethers.Contract(uniswapV2Router_address, uniswapV2RouterABI, accounts[10]);
+  const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, accounts[10]);
 
-  const UNI = new ethers.Contract(UNI_address, uniABI, provider);
-  const WETH = new ethers.Contract(WETH_address, wethABI, provider);
+  const UNI = new ethers.Contract(UNI_address, uniABI, accounts[10]);
+  const WETH = new ethers.Contract(WETH_address, wethABI, accounts[10]);
 
   const LpToken_address = await UniswapV2Factory.getPair(UNI_address, WETH_address)
-  const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, provider);
+  const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, accounts[10]);
 
   const swapAgentNb = 5
   let agentSwap: AgentSwap[] = []
@@ -99,7 +97,7 @@ async function main() {
       new AgentSwap(
         'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
         normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
-        getStep, getCurrentBlock, setLiquidityPool, provider
+        getStep, getCurrentBlock, setLiquidityPool
       )
     )
   }
@@ -111,26 +109,23 @@ async function main() {
   );
 
   // send tokens to agent ( I prefer fund them in their constructor() method )
-  // const WETH_godWallet = new ethers.Contract(WETH_address, wethABI);
-  // WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18), {gasLimit: 100000})
-  // const UNI_godWallet = new ethers.Contract(UNI_address, uniABI);
-  // UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18), {gasLimit: 100000})
-  // console.log('ETH  ' + await provider.getBalance(accounts[10].address))
+  const WETH_godWallet = new ethers.Contract(WETH_address, wethABI, godWallet);
+  await WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18))
+  const UNI_godWallet = new ethers.Contract(UNI_address, uniABI, godWallet);
+  await UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18))
 
-  while(currentBlock < endBlock){
+  while(step < 30){
 
     console.log(currentBlock)
 
     // CALL AGENTS MAIN METHOD
-    // await agentSwap[0].takeStep()
-    await agentLiquidity.takeStep()
+    await agentSwap[0].takeStep()
+    // await agentLiquidity.takeStep()
 
-    await block.advance(1) // mine a block on the hardhat local fork. Transactions in the mempool are added
+    // await block.advance(1) // mine a block on the hardhat local fork. Transactions in the mempool are added
     step+=1; 
 
     currentBlock = (await ethers.provider.getBlock("latest")).number
-
-    await sleep(100) // wait for a few ms to let the program write in the .csv and logs.txt
   }
 }
 

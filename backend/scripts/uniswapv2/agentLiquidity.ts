@@ -1,5 +1,8 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
+import { testUtils } from 'hardhat';
+import { ethers } from "hardhat"; // PTN il y a un ethers from ethers et un ethers from hardhat
+const { block } = testUtils
 
 class AgentLiquidity {
     name: string;
@@ -28,8 +31,8 @@ class AgentLiquidity {
       this.wallet = wallet;
       this.uniswapV2Router = uniswapV2Router.connect(wallet);
       this.uniswapV2Factory = uniswapV2Factory.connect(wallet);
-      this.tokenA = tokenA.connect(godWallet);
-      this.tokenB = tokenB.connect(godWallet);
+      this.tokenA = tokenA.connect(wallet);
+      this.tokenB = tokenB.connect(wallet);
       this.lpToken = lpToken;
       this.normalDistribution = normalDistribution;
       this.poissonDistribution = poissonDistribution;
@@ -38,11 +41,11 @@ class AgentLiquidity {
       this.getCurrentBlock = getCurrentBlock;
       this.setLiquidityPool = setLiquidtyPool;
 
-      this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
-      this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
+      // this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
+      // this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
 
-      this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
-      this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
+      // this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
+      // this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
 
       // this.getBalance(wallet.address)
     }
@@ -52,7 +55,7 @@ class AgentLiquidity {
         const tokenA_balance = await this.tokenA.callStatic.balanceOf(to)
         const tokenB_balance = await this.tokenB.callStatic.balanceOf(to)
   
-        // console.log('UNI: ' + tokenA_balance / 10**18)
+        console.log('UNI: ' + tokenA_balance / 10**18)
         console.log('WETH: ' + tokenB_balance / 10**18)
   
         return [tokenA_balance, tokenB_balance]
@@ -62,7 +65,7 @@ class AgentLiquidity {
       if(this.binomialDistribution[this.getStep()] == 1)
       await this.addLiquidity()
       else if(await this.lpToken.callStatic.balanceOf(this.wallet.address) > 0)
-      this.removeLiquidity()
+      await this.removeLiquidity()
     }
 
     async addLiquidity() {
@@ -85,12 +88,12 @@ class AgentLiquidity {
         const amountBMin = 1
 
         const to = this.wallet.address;
-        const deadline = this.getCurrentBlock() + 3
+        const deadline = (await ethers.provider.getBlock("latest")).timestamp + 300
         
-        this.tokenA.approve(this.uniswapV2Router.address, amountADesired)
-        this.tokenB.approve(this.uniswapV2Router.address, amountBDesired)
+        await this.tokenA.approve(this.uniswapV2Router.address, amountADesired)
+        await this.tokenB.approve(this.uniswapV2Router.address, amountBDesired)
 
-        const tx = await this.uniswapV2Router.addLiquidity(this.tokenA.address, this.tokenB.address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
+        const tx = await this.uniswapV2Router.addLiquidity(this.tokenA.address, this.tokenB.address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
 
         const balances2 = await this.getBalance(this.wallet.address)
         const tokenA_balance2 = balances[0]
@@ -105,7 +108,7 @@ class AgentLiquidity {
         const amountBMin = 1
         
         const to = this.wallet.address;
-        const deadline = this.getCurrentBlock() + 3
+        const deadline =  (await ethers.provider.getBlock("latest")).timestamp + 300
 
         const balances = await this.getBalance(this.lpToken.address)
         const tokenA_balance = balances[0]
@@ -113,9 +116,9 @@ class AgentLiquidity {
 
         const liquidity = await this.lpToken.callStatic.balanceOf(to)
 
-        this.lpToken.approve(this.uniswapV2Router.address, liquidity)
+        await this.lpToken.approve(this.uniswapV2Router.address, liquidity)
 
-        const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA.address, this.tokenB.address, liquidity, amountAMin, amountBMin, to, deadline, {gasLimit: 100000})
+        const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA.address, this.tokenB.address, liquidity, amountAMin, amountBMin, to, deadline)
 
         const balances2 = await this.getBalance(this.lpToken.address)
         const tokenA_balance2 = balances[0]

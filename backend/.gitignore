@@ -1,4 +1,5 @@
 node_modules
+outdir_csv
 # .env
 coverage
 coverage.json
@@ -7,4 +8,3 @@ typechain
 #Hardhat files
 cache
 artifacts
-README.md

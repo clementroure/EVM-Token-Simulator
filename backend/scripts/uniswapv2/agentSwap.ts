@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 import { testUtils } from 'hardhat';
+import { ethers } from "hardhat";
 const { block } = testUtils
 
 class AgentSwap {
@@ -18,21 +19,20 @@ class AgentSwap {
     getStep: Function;
     getCurrentBlock: Function;
     setLiquidityPool: Function;
-    provider: any;
   
     constructor(
       name: string, wallet: SignerWithAddress, godWallet: SignerWithAddress, uniswapV2Router: Contract, 
       uniswapV2Factory: Contract, tokenA: Contract, tokenB: Contract, lpToken: Contract,
       normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
-      getStep: Function, getCurrentBlock: Function, setLiquidtyPool: Function, provider: any
+      getStep: Function, getCurrentBlock: Function, setLiquidtyPool: Function
       ) {
       this.name = name;
       this.id = parseInt(name.slice(-1));
       this.wallet = wallet;
       this.uniswapV2Router = uniswapV2Router.connect(wallet);
       this.uniswapV2Factory = uniswapV2Factory.connect(wallet);
-      this.tokenA = tokenA.connect(godWallet);
-      this.tokenB = tokenB.connect(godWallet);
+      this.tokenA = tokenA.connect(wallet);
+      this.tokenB = tokenB.connect(wallet);
       this.lpToken = lpToken;
       this.normalDistribution = normalDistribution;
       this.poissonDistribution = poissonDistribution;
@@ -40,13 +40,12 @@ class AgentSwap {
       this.getStep = getStep;
       this.getCurrentBlock = getCurrentBlock;
       this.setLiquidityPool = setLiquidtyPool;
-      this.provider = provider;
 
-      this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
-      this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
+      // this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
+      // this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
 
-      this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
-      this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
+      // this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
+      // this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
 
       // this.getBalance(wallet.address)
     }
@@ -76,7 +75,7 @@ class AgentSwap {
       // Recipient of the output tokens.
       const to = this.wallet.address
       // deadline
-      const deadline = this.getCurrentBlock() + 30000000000
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp + 300
       // ratio tokenA/tokenB
       const balances = await this.getBalance(this.lpToken.address)
       const tokenA_balance = balances[0]
@@ -96,7 +95,7 @@ class AgentSwap {
         amountIn = Math.round(c * this.normalDistribution[this.getStep()])
 
         path = [this.tokenA.address, this.tokenB.address]
-        this.tokenA.approve(this.uniswapV2Router.address, amountIn)
+        await this.tokenA.approve(this.uniswapV2Router.address, amountIn)
       }
       else{
         if(tokenA_balance > tokenB_balance)
@@ -105,15 +104,12 @@ class AgentSwap {
         amountIn = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
 
         path = [this.tokenB.address, this.tokenA.address]
-        this.tokenB.approve(this.uniswapV2Router.address, amountIn)
+        await this.tokenB.approve(this.uniswapV2Router.address, amountIn)
       }
 
-      const tx = await this.uniswapV2Router.swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline, {gasLimit: 100000})
-      // await tx.wait()
-      // const txReceipt = await this.provider.getTransactionReceipt(tx.hash);
-      // console.log(txReceipt) // null = block are not mined
+      const tx = await this.uniswapV2Router.swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
-      const balances2 = await this.getBalance(this.wallet.address)
+      const balances2 = await this.getBalance(this.lpToken.address)
       const tokenA_balance2 = balances[0]
       const tokenB_balance2 = balances[1]
 

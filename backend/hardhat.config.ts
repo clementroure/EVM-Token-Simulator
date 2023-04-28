@@ -23,10 +23,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: process.env.GOERLI_URL as string,
-      },
-      chainId: 5,
-      // gasPrice: 1,
-      // gas: 100000,
+      }
     },
   },
   etherscan: {
@@ -35,3 +32,4 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
+
