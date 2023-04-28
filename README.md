@@ -1,4 +1,4 @@
- A Typescript + Hardhat version of TokenSpice (https://github.com/tokenspice/tokenspice)
+ An updated Typescript + Hardhat version of TokenSpice (https://github.com/tokenspice/tokenspice)
  
  Usage:
 
