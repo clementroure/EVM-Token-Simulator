@@ -41,13 +41,13 @@ class AgentLiquidity {
       this.getCurrentBlock = getCurrentBlock;
       this.setLiquidityPool = setLiquidtyPool;
 
-      // this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
-      // this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
+      this.init()
+    }
 
-      // this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
-      // this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
+    async init(){
 
-      // this.getBalance(wallet.address)
+      await this.tokenA.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
+      await this.tokenB.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {
@@ -89,9 +89,6 @@ class AgentLiquidity {
 
         const to = this.wallet.address;
         const deadline = (await ethers.provider.getBlock("latest")).timestamp + 300
-        
-        await this.tokenA.approve(this.uniswapV2Router.address, amountADesired)
-        await this.tokenB.approve(this.uniswapV2Router.address, amountBDesired)
 
         const tx = await this.uniswapV2Router.addLiquidity(this.tokenA.address, this.tokenB.address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
 
@@ -110,21 +107,17 @@ class AgentLiquidity {
         const to = this.wallet.address;
         const deadline =  (await ethers.provider.getBlock("latest")).timestamp + 300
 
-        const balances = await this.getBalance(this.lpToken.address)
-        const tokenA_balance = balances[0]
-        const tokenB_balance = balances[1]
-
         const liquidity = await this.lpToken.callStatic.balanceOf(to)
 
         await this.lpToken.approve(this.uniswapV2Router.address, liquidity)
 
         const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA.address, this.tokenB.address, liquidity, amountAMin, amountBMin, to, deadline)
 
-        const balances2 = await this.getBalance(this.lpToken.address)
-        const tokenA_balance2 = balances[0]
-        const tokenB_balance2 = balances[1]
+        const balances = await this.getBalance(this.lpToken.address)
+        const tokenA_balance = balances[0]
+        const tokenB_balance = balances[1]
 
-        this.setLiquidityPool(this.name, tokenA_balance2, tokenB_balance2)
+        this.setLiquidityPool(this.name, tokenA_balance, tokenB_balance)
     }
 }
 

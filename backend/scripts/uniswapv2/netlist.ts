@@ -26,12 +26,6 @@ const csvWriter = createCsvWriter({
 
 async function main() {
 
-  // set the logs.txt path 
-  // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
-  writeFile('outdir_csv/logs.txt', '', (err) => {
-    if (err) throw err;
-  })
-
   // block.setAutomine(false)
 
   // I unlock my MetaMask wallet. On Goerli, I have a few eth, weth and uni tokens
@@ -51,9 +45,9 @@ async function main() {
   function getCurrentBlock (): number {
     return currentBlock;
   }
-  async function setLiquidityPool(amountA: number, amountB: number){
+  async function setLiquidityPool(agentName: string, amountA: number, amountB: number){
     liquidityPool = [amountA, amountB]
-    const txt = step + ': amountA: ' +  amountA/10**18 + ' amountB: ' + amountB/10**18 + '\n'
+    const txt =  (step+1) + ': ' + agentName + ' -> amountA: ' +  amountA/10**18 + ' amountB: ' + amountB/10**18 + '\n'
     appendFile('outdir_csv/logs.txt', txt, (err) => {
         if (err) throw err;
     })
@@ -90,6 +84,13 @@ async function main() {
 
   // amount of token A and B in the liquidity pool weth / uni
   var liquidityPool = [await UNI.callStatic.balanceOf(LpToken.address),  await WETH.callStatic.balanceOf(LpToken.address)]
+  
+  // set the logs.txt path 
+  // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
+  const txt =  'Initialisation' + ' -> amountA: ' +  liquidityPool[0]/10**18 + ' amountB: ' + liquidityPool[1]/10**18 + '\n'
+  writeFile('outdir_csv/logs.txt', txt, (err) => {
+    if (err) throw err;
+  })
 
   const swapAgentNb = 5
   let agentSwap: AgentSwap[] = []
