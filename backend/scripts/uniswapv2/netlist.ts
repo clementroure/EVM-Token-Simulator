@@ -34,7 +34,6 @@ async function main() {
 
   var currentBlock = (await ethers.provider.getBlock("latest")).number
   const simulationDuration = 10
-  const endBlock = currentBlock + simulationDuration
 
   var step = 0;
 
@@ -59,11 +58,11 @@ async function main() {
   var poissonDistributionAgent = []
   var binomialDistributionAgent = []
   
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < simulationDuration; i++) {
     normalDistributionAgent.push(normal_distribution(0,2,1))
   }
-  poissonDistributionAgent = poisson_distribution(2,100)
-  binomialDistributionAgent = binomial_distribution(1,0.5,100)
+  poissonDistributionAgent = poisson_distribution(2, simulationDuration)
+  binomialDistributionAgent = binomial_distribution(1,0.5, simulationDuration)
 
   // console.log(normalDistributionAgent)
   // console.log(poissonDistributionAgent)
@@ -87,9 +86,16 @@ async function main() {
   
   // set the logs.txt path 
   // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
-  const txt =  'Initialisation' + ' -> amountA: ' +  liquidityPool[0]/10**18 + ' amountB: ' + liquidityPool[1]/10**18 + '\n'
+  let txt = 'Normal Distribution: ' + normalDistributionAgent.toString() + '\n' + 'Poisson Distribution: ' + poissonDistributionAgent.toString() + '\n' + 'Binomial Distribution: ' + binomialDistributionAgent.toString() + '\n'
   writeFile('outdir_csv/logs.txt', txt, (err) => {
     if (err) throw err;
+  })
+  txt =  'Initialisation' + ' -> amountA: ' +  liquidityPool[0]/10**18 + ' amountB: ' + liquidityPool[1]/10**18 + '\n'
+  appendFile('outdir_csv/logs.txt', txt, (err) => {
+    if (err) throw err;
+  })
+  await csvWriter.writeRecords([{tick: step, amountA: liquidityPool[0]/10**18, amountB: liquidityPool[1]/10**18}]).catch((e) => {
+    console.log(e);
   })
 
   const swapAgentNb = 5
@@ -117,13 +123,9 @@ async function main() {
   await UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18))
 
 
-  while(step < 30){
+  while(step < simulationDuration){
 
     console.log(step)
-
-    await csvWriter.writeRecords([{tick: step, amountA: liquidityPool[0]/10**18, amountB: liquidityPool[1]/10**18}]).catch((e) => {
-      console.log(e);
-    })
 
     // CALL AGENTS MAIN METHOD
     for(let i =0; i<swapAgentNb; i++){
@@ -136,6 +138,10 @@ async function main() {
     step+=1; 
 
     currentBlock = (await ethers.provider.getBlock("latest")).number
+
+    await csvWriter.writeRecords([{tick: step, amountA: liquidityPool[0]/10**18, amountB: liquidityPool[1]/10**18}]).catch((e) => {
+      console.log(e);
+    })
   }
 }
 

@@ -48,6 +48,7 @@ class AgentLiquidity {
 
       await this.tokenA.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
       await this.tokenB.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
+      await this.lpToken.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {
@@ -108,8 +109,6 @@ class AgentLiquidity {
         const deadline =  (await ethers.provider.getBlock("latest")).timestamp + 300
 
         const liquidity = await this.lpToken.callStatic.balanceOf(to)
-
-        await this.lpToken.approve(this.uniswapV2Router.address, liquidity)
 
         const tx = await this.uniswapV2Router.removeLiquidity(this.tokenA.address, this.tokenB.address, liquidity, amountAMin, amountBMin, to, deadline)
 
