@@ -1,5 +1,4 @@
- EVM agent-based token simulator
- 
+ A Typescript + Hardhat version of TokenSpice (https://github.com/tokenspice/tokenspice)
  
  Usage:
 
