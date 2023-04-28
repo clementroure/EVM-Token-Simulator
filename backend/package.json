@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-project",
+  "name": "evm_agent-based_token_simulator",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/chai": "^4.3.4",

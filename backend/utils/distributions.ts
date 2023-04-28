@@ -1,5 +1,4 @@
 
-// Normal distribution
 function normal_distribution(min: number, max: number, skew: number) {
   
     let u = 0, v = 0;

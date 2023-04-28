@@ -1,5 +1,4 @@
 node_modules
-outdir_csv
 # .env
 coverage
 coverage.json
