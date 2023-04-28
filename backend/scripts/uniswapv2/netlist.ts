@@ -18,6 +18,7 @@ import AgentLiquidity from "./agentLiquidity";
 const csvWriter = createCsvWriter({
   path: 'outdir_csv/data.csv',
   header: [
+    {id: 'tick', title: 'tick'},
     {id: 'amountA', title: 'amountA'},
     {id: 'amountB', title: 'amountB'}
   ]
@@ -42,8 +43,6 @@ async function main() {
   const endBlock = currentBlock + simulationDuration
 
   var step = 0;
-  // amount of token A and B in the liquidity pool weth / uni
-  var liquidityPool = [0,0]
 
   // 1 step = 1 day in the simulation
   function getStep (): number {
@@ -54,11 +53,7 @@ async function main() {
   }
   async function setLiquidityPool(amountA: number, amountB: number){
     liquidityPool = [amountA, amountB]
-
-    await csvWriter.writeRecords([{amountA: amountA, amountB: amountB}]).catch((e) => {
-        console.log(e);
-    })
-    const txt = step + ': amountA: ' +  amountA + ' amountB: ' + amountB + '\n'
+    const txt = step + ': amountA: ' +  amountA/10**18 + ' amountB: ' + amountB/10**18 + '\n'
     appendFile('outdir_csv/logs.txt', txt, (err) => {
         if (err) throw err;
     })
@@ -87,7 +82,14 @@ async function main() {
   const WETH = new ethers.Contract(WETH_address, wethABI, accounts[10]);
 
   const LpToken_address = await UniswapV2Factory.getPair(UNI_address, WETH_address)
-  const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, accounts[10]);
+  const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, accounts[10])
+
+  // send tokens to agent ( I prefer fund them in their constructor() method )
+  const WETH_godWallet = new ethers.Contract(WETH_address, wethABI, godWallet)
+  const UNI_godWallet = new ethers.Contract(UNI_address, uniABI, godWallet)
+
+  // amount of token A and B in the liquidity pool weth / uni
+  var liquidityPool = [await UNI.callStatic.balanceOf(LpToken.address),  await WETH.callStatic.balanceOf(LpToken.address)]
 
   const swapAgentNb = 5
   let agentSwap: AgentSwap[] = []
@@ -100,29 +102,36 @@ async function main() {
         getStep, getCurrentBlock, setLiquidityPool
       )
     )
+    await WETH_godWallet.transfer(accounts[i].address, ethers.utils.parseUnits('0.001', 18))
+    await UNI_godWallet.transfer(accounts[i].address, ethers.utils.parseUnits('0.004', 18))
   }
 
   const agentLiquidity = new AgentLiquidity(
     'liquidity_0', accounts[10], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
     normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
     getStep, getCurrentBlock, setLiquidityPool,
-  );
+  )
 
-  // send tokens to agent ( I prefer fund them in their constructor() method )
-  const WETH_godWallet = new ethers.Contract(WETH_address, wethABI, godWallet);
   await WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18))
-  const UNI_godWallet = new ethers.Contract(UNI_address, uniABI, godWallet);
   await UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18))
+
 
   while(step < 30){
 
-    console.log(currentBlock)
+    console.log(step)
+
+    await csvWriter.writeRecords([{tick: step, amountA: liquidityPool[0]/10**18, amountB: liquidityPool[1]/10**18}]).catch((e) => {
+      console.log(e);
+    })
 
     // CALL AGENTS MAIN METHOD
-    await agentSwap[0].takeStep()
-    // await agentLiquidity.takeStep()
+    for(let i =0; i<swapAgentNb; i++){
+       await agentSwap[i].takeStep()
+    }
+    await agentLiquidity.takeStep()
 
     // await block.advance(1) // mine a block on the hardhat local fork. Transactions in the mempool are added
+
     step+=1; 
 
     currentBlock = (await ethers.provider.getBlock("latest")).number

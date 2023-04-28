@@ -56,7 +56,7 @@ class AgentSwap {
         const tokenB_balance = await this.tokenB.callStatic.balanceOf(to)
   
         // console.log('UNI: ' + tokenA_balance / 10**18)
-        console.log('WETH: ' + tokenB_balance / 10**18)
+        // console.log('WETH: ' + tokenB_balance / 10**18)
   
         return [tokenA_balance, tokenB_balance]
     }
@@ -113,7 +113,7 @@ class AgentSwap {
       const tokenA_balance2 = balances[0]
       const tokenB_balance2 = balances[1]
 
-      this.setLiquidityPool(tokenA_balance2, tokenB_balance2)
+      this.setLiquidityPool(this.name, tokenA_balance2, tokenB_balance2)
     }
 }
 

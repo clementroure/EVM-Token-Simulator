@@ -98,11 +98,11 @@ export default function Index () {
 				});
 
 				// counter en fonction de day 
-				const reducedMatrix = valuesArray.map(row => [row[4], row[valuesArray[0].length-2]]);
+				const reducedMatrix = valuesArray.map(row => [row[0], row[valuesArray[0].length-2]]);
 				console.log(reducedMatrix)
 
 				// counter en fonction de day 
-				const reducedMatrix2 = valuesArray.map(row => [row[4], row[valuesArray[0].length-1]]);
+				const reducedMatrix2 = valuesArray.map(row => [row[0], row[valuesArray[0].length-1]]);
 
 				setData(
 					{
