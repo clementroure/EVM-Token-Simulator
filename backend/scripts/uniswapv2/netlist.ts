@@ -13,10 +13,11 @@ import LpTokenABI from '../../abi/LpToken.json'
 import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_address} from '../../utils/address'
 import {sleep} from '../../utils/other'
 import AgentLiquidity from "./agentLiquidity";
+import Stopwatch from 'statman-stopwatch';
 
 // set the .csv path and headers
 const csvWriter = createCsvWriter({
-  path: 'outdir_csv/data.csv',
+  path: 'outdir_data/data.csv',
   header: [
     {id: 'tick', title: 'tick'},
     {id: 'amountA', title: 'amountA'},
@@ -24,7 +25,7 @@ const csvWriter = createCsvWriter({
   ]
 });
 
-async function main() {
+export default async function main() {
 
   // block.setAutomine(false)
 
@@ -33,7 +34,7 @@ async function main() {
   const godWallet = await ethers.getImpersonatedSigner("0x7bBfecDCF7d0E7e5aA5fffA4593c26571824CB87");
 
   var currentBlock = (await ethers.provider.getBlock("latest")).number
-  const simulationDuration = 10
+  const simulationDuration = 100
 
   var step = 0;
 
@@ -47,7 +48,7 @@ async function main() {
   async function setLiquidityPool(agentName: string, amountA: number, amountB: number){
     liquidityPool = [amountA, amountB]
     const txt =  (step+1) + ': ' + agentName + ' -> amountA: ' +  amountA/10**18 + ' amountB: ' + amountB/10**18 + '\n'
-    appendFile('outdir_csv/logs.txt', txt, (err) => {
+    appendFile('outdir_data/logs.txt', txt, (err) => {
         if (err) throw err;
     })
   } 
@@ -87,11 +88,11 @@ async function main() {
   // set the logs.txt path 
   // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
   let txt = 'Normal Distribution: ' + normalDistributionAgent.toString() + '\n' + 'Poisson Distribution: ' + poissonDistributionAgent.toString() + '\n' + 'Binomial Distribution: ' + binomialDistributionAgent.toString() + '\n'
-  writeFile('outdir_csv/logs.txt', txt, (err) => {
+  writeFile('outdir_data/logs.txt', txt, (err) => {
     if (err) throw err;
   })
   txt =  'Initialisation' + ' -> amountA: ' +  liquidityPool[0]/10**18 + ' amountB: ' + liquidityPool[1]/10**18 + '\n'
-  appendFile('outdir_csv/logs.txt', txt, (err) => {
+  appendFile('outdir_data/logs.txt', txt, (err) => {
     if (err) throw err;
   })
   await csvWriter.writeRecords([{tick: step, amountA: liquidityPool[0]/10**18, amountB: liquidityPool[1]/10**18}]).catch((e) => {
@@ -122,6 +123,9 @@ async function main() {
   await WETH_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.001', 18))
   await UNI_godWallet.transfer(accounts[10].address, ethers.utils.parseUnits('0.004', 18))
 
+  // debug timer
+  const stopwatch = new Stopwatch();
+  stopwatch.start();
 
   while(step < simulationDuration){
 
@@ -143,6 +147,11 @@ async function main() {
       console.log(e);
     })
   }
+
+  // debug
+  stopwatch.stop();
+  let time = stopwatch.read();
+  console.log("Simulation duration : " + (time/1000).toFixed(3) + 's')
 }
 
 main()

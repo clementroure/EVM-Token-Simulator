@@ -1,6 +1,6 @@
  An updated Typescript + Hardhat version of TokenSpice (https://github.com/tokenspice/tokenspice)
  
- Usage:
+ Usage
 
  This project has been tested with node v16.13.2
 

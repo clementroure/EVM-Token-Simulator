@@ -25,9 +25,6 @@ const config: HardhatUserConfig = {
         url: process.env.GOERLI_URL as string,
       }
     },
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY as string
   }
 };
 
