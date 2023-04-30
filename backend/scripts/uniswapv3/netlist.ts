@@ -4,16 +4,23 @@ const { block } = testUtils
 import { writeFile, appendFile } from 'fs';
 import { createObjectCsvWriter as createCsvWriter } from 'csv-writer';
 import {normal_distribution, poisson_distribution, binomial_distribution} from '../../utils/distributions'
-import AgentSwap from './agents/agentSwap'
 import uniswapV2RouterABI from '../../abi/UniswapV2Router.json'
 import uniswapV2FactoryABI from '../../abi/UniswapV2Factory.json'
 import uniABI from '../../abi/UNI.json'
 import wethABI from '../../abi/WETH.json'
 import LpTokenABI from '../../abi/LpToken.json'
-import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_address} from '../../utils/address'
-import AgentLiquidity from "./agents/agentLiquidity";
+import uniswapV3NonFungiblePositionManagerABI from '../../abi/uniswapV3NonFungiblePositionManager.json'
+import uniswapV3FactoryABI from '../../abi/uniswapV3Factory.json'
+import uniswapV3SwapRouterABI from '../../abi/uniswapV3SwapRouter.json'
+import uniswapV3PoolABI from '../../abi/uniswapV3Pool.json'
+import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_address, uniswapV3NonFungiblePositionManager_address, uniswapV3Factory_address, uniswapV3SwapRouter_address} from '../../utils/address'
 // @ts-ignore
 import Stopwatch from 'statman-stopwatch';
+import * as dotenv from "dotenv";
+import AgentLiquidity from "./agents/agentLiquidity";
+import AgentSwap from "./agents/agentSwap";
+
+dotenv.config();
 
 // set the .csv path and headers
 const csvWriter = createCsvWriter({
@@ -28,6 +35,8 @@ const csvWriter = createCsvWriter({
 export default async function main() {
 
   const provider = new ethers.providers.JsonRpcProvider(process.env.ALCHEMY_URL as string)
+
+  // block.setAutomine(false)
 
   // I unlock my MetaMask wallet. On Goerli, I have a few eth, weth and uni tokens
   // The agents will be initialized with 1000 ETH but I have to fund them with other ERC-20 tokens
@@ -59,27 +68,29 @@ export default async function main() {
   var poissonDistributionAgent = []
   var binomialDistributionAgent = []
   
-  for (let i = 0; i < simulationDuration; i++) {
+  for (let i = 0; i < simulationDuration+1; i++) {
     normalDistributionAgent.push(normal_distribution(0,2,1))
   }
-  poissonDistributionAgent = poisson_distribution(2, simulationDuration)
-  binomialDistributionAgent = binomial_distribution(1,0.5, simulationDuration)
+  poissonDistributionAgent = poisson_distribution(2, simulationDuration+1)
+  binomialDistributionAgent = binomial_distribution(1,0.5, simulationDuration+1)
 
   // console.log(normalDistributionAgent)
-  // console.log(poissonDistributionAgent)
+  // console.log(poissonDistributionAgent)      
   // console.log(binomialDistributionAgent)
 
-  const UniswapV2Router = new ethers.Contract(uniswapV2Router_address, uniswapV2RouterABI, provider);
-  const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, provider);
+  const UniswapV3NonFungiblePositionManager = new ethers.Contract(uniswapV3NonFungiblePositionManager_address, uniswapV3NonFungiblePositionManagerABI, provider);
+  const UniswapV3Factory= new ethers.Contract(uniswapV3Factory_address, uniswapV3FactoryABI, provider);
+  const UniswapV3SwapRouter= new ethers.Contract(uniswapV3SwapRouter_address, uniswapV3SwapRouterABI, provider);
 
   const UNI = new ethers.Contract(UNI_address, uniABI, provider);
   const WETH = new ethers.Contract(WETH_address, wethABI, provider);
 
-  const LpToken_address = await UniswapV2Factory.getPair(UNI_address, WETH_address)
-  const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, provider)
+  // verify if pool exist
+  const pairPoolAddress = await UniswapV3Factory.callStatic.getPool(UNI.address, WETH.address, 3000)
+  const UniswapV3Pool = new ethers.Contract(pairPoolAddress, uniswapV3PoolABI, provider);
 
   // amount of token A and B in the liquidity pool weth / uni
-  var liquidityPool = [await UNI.callStatic.balanceOf(LpToken.address),  await WETH.callStatic.balanceOf(LpToken.address)]
+  var liquidityPool = [0,  0]
   
   // set the logs.txt path 
   // all the activity during the simulation will be recorded here (ex: t=0 - Agent_1 Swap 156156 UNI token for 11564 WETH, Agent_2 Added Liquidity 156156 UNI and 11564 WETH)
@@ -95,29 +106,22 @@ export default async function main() {
     console.log(e);
   })
 
-  const swapAgentNb = 5
-  let agentSwap: AgentSwap[] = []
-
-  for(let i =0; i<swapAgentNb; i++){
-    agentSwap.push(
-      new AgentSwap(
-        'swap_'+i.toString(), accounts[i], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
-        normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
-        getStep, getCurrentBlock, setLiquidityPool
-      )
-    )
-    await WETH.connect(godWallet).transfer(accounts[i].address, ethers.utils.parseUnits('0.0001', 18))
-    await UNI.connect(godWallet).transfer(accounts[i].address, ethers.utils.parseUnits('0.01', 18))
-  }
-
   const agentLiquidity = new AgentLiquidity(
-    'liquidity_0', accounts[10], godWallet, UniswapV2Router, UniswapV2Factory, UNI, WETH, LpToken, 
+    'liquidity_0', accounts[10], godWallet, UniswapV3Pool, UniswapV3NonFungiblePositionManager, UniswapV3Factory,  UNI, WETH,
+    normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
+    getStep, getCurrentBlock, setLiquidityPool,
+  )
+  const agentSwap = new AgentSwap(
+    'swap_0', accounts[0], godWallet, UniswapV3Pool, UniswapV3SwapRouter, UniswapV3Factory,  UNI, WETH,
     normalDistributionAgent, poissonDistributionAgent, binomialDistributionAgent, 
     getStep, getCurrentBlock, setLiquidityPool,
   )
 
   await WETH.connect(godWallet).transfer(accounts[10].address, ethers.utils.parseUnits('0.0001', 18))
   await UNI.connect(godWallet).transfer(accounts[10].address, ethers.utils.parseUnits('0.01', 18))
+  //
+  await WETH.connect(godWallet).transfer(accounts[0].address, ethers.utils.parseUnits('0.0001', 18))
+  await UNI.connect(godWallet).transfer(accounts[0].address, ethers.utils.parseUnits('0.01', 18))
 
   // debug timer
   const stopwatch = new Stopwatch();
@@ -128,10 +132,8 @@ export default async function main() {
     console.log(step)
 
     // CALL AGENTS MAIN METHOD
-    for(let i =0; i<swapAgentNb; i++){
-       await agentSwap[i].takeStep()
-    }
     await agentLiquidity.takeStep()
+    // await agentSwap.takeStep()
 
     // await block.advance(1) // mine a block on the hardhat local fork. Transactions in the mempool are added
 

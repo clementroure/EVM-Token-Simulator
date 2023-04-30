@@ -11,7 +11,7 @@
 
  - cd backend
  - npm install
- - replace the .env variables (optional)
+ - rename .env.example to .env and add the variables
 
  Run the example with
 

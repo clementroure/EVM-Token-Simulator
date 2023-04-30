@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.GOERLI_URL as string,
+        url: process.env.ALCHEMY_URL as string,
       }
     },
   }

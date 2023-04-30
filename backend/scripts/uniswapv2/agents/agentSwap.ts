@@ -92,7 +92,7 @@ class AgentSwap {
 
       const ratio = _max / _min
       // constant value
-      const c = 0.0000001*10**18
+      const c = 0.00000001*10**18
       // swap direction
       if(this.binomialDistribution[this.getStep()] == 1){
         if(tokenA_balance > tokenB_balance)

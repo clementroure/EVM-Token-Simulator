@@ -33,7 +33,7 @@ class AgentLiquidity {
       this.uniswapV2Factory = uniswapV2Factory.connect(wallet);
       this.tokenA = tokenA.connect(wallet);
       this.tokenB = tokenB.connect(wallet);
-      this.lpToken = lpToken;
+      this.lpToken = lpToken.connect(wallet);
       this.normalDistribution = normalDistribution;
       this.poissonDistribution = poissonDistribution;
       this.binomialDistribution = binomialDistribution;
