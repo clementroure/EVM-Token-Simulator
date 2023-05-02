@@ -1,7 +1,8 @@
 import { createObjectCsvWriter as createCsvWriter } from 'csv-writer';
 import { CsvWriter } from 'csv-writer/src/lib/csv-writer';
 import { ObjectMap } from 'csv-writer/src/lib/lang/object';
-import { writeFile, appendFile } from 'fs';
+import { writeFile, appendFile, existsSync, mkdirSync } from 'fs';
+import path from 'path';
 
 export default class Printer{
     csvWriter: CsvWriter<ObjectMap<any>> | undefined = undefined
@@ -15,6 +16,11 @@ export default class Printer{
             {id: 'amountB', title: 'amountB'}
             ]
         });
+
+        const filePath = path.join(__dirname, `../outdir_data`)
+        if (!existsSync(filePath)) {
+           mkdirSync('./outdir_data');
+        } 
     }
 
     initTxt(txt: string){
