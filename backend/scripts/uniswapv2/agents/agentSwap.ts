@@ -1,65 +1,49 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
-import { testUtils } from 'hardhat';
-import { ethers } from "hardhat";
-const { block } = testUtils
+import AgentBase from '../../../engine/agentBase'
+import Printer from "../../../engine/printer";
 
-class AgentSwap {
-    name: string;
-    id: number;
-    wallet: SignerWithAddress;
-    uniswapV2Router: Contract;
-    uniswapV2Factory: Contract;
-    tokenA: Contract;
-    tokenB: Contract;
-    lpToken: Contract;
-    normalDistribution: number[];
-    poissonDistribution: number[];
-    binomialDistribution: number[];
-    getStep: Function;
-    getCurrentBlock: Function;
-    setLiquidityPool: Function;
-  
+class AgentSwap extends AgentBase {
+
     constructor(
-      name: string, wallet: SignerWithAddress, godWallet: SignerWithAddress, uniswapV2Router: Contract, 
-      uniswapV2Factory: Contract, tokenA: Contract, tokenB: Contract, lpToken: Contract,
+      name: string, wallet: SignerWithAddress, printer: Printer,
+      getStep: Function, setTrackedResults: Function,
+      uniswapV2Router: Contract, uniswapV2Factory: Contract, tokenA: Contract, tokenB: Contract, lpToken: Contract,
       normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
-      getStep: Function, getCurrentBlock: Function, setLiquidtyPool: Function
       ) {
-      this.name = name;
-      this.id = parseInt(name.slice(-1));
-      this.wallet = wallet;
-      this.uniswapV2Router = uniswapV2Router.connect(wallet);
-      this.uniswapV2Factory = uniswapV2Factory.connect(wallet);
-      this.tokenA = tokenA.connect(wallet);
-      this.tokenB = tokenB.connect(wallet);
-      this.lpToken = lpToken;
-      this.normalDistribution = normalDistribution;
-      this.poissonDistribution = poissonDistribution;
-      this.binomialDistribution = binomialDistribution;
-      this.getStep = getStep;
-      this.getCurrentBlock = getCurrentBlock;
-      this.setLiquidityPool = setLiquidtyPool;
-
-      // this.tokenA.approve(wallet.address, ethers.utils.parseUnits('0.004', 18))
-      // this.tokenB.approve(wallet.address, ethers.utils.parseUnits('0.001', 18))
-
-      // this.tokenA.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.004', 18)) 
-      // this.tokenB.transferFrom(godWallet.address, wallet.address, ethers.utils.parseUnits('0.001', 18)) 
+      super(
+        name,
+        wallet, 
+        printer,
+        getStep,
+        setTrackedResults,
+        [
+          {name: 'normal', distribution: normalDistribution},
+          {name: 'poisson', distribution: poissonDistribution},
+          {name: 'binomial', distribution: binomialDistribution}
+        ],
+        [
+          {name: 'uniswapV2Router', contract: uniswapV2Router},
+          {name: 'uniswapV2Factory', contract: uniswapV2Factory},
+          {name: 'lpToken', contract: lpToken},
+          {name: 'tokenA', contract: tokenA},
+          {name: 'tokenB', contract: tokenB}
+        ]
+      )
 
       this.init()
     }
 
     async init(){
 
-      await this.tokenA.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
-      await this.tokenB.approve(this.uniswapV2Router.address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {
 
-        const tokenA_balance = await this.tokenA.callStatic.balanceOf(to)
-        const tokenB_balance = await this.tokenB.callStatic.balanceOf(to)
+        const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
+        const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
   
         // console.log('UNI: ' + tokenA_balance / 10**18)
         // console.log('WETH: ' + tokenB_balance / 10**18)
@@ -68,7 +52,7 @@ class AgentSwap {
     }
   
     async takeStep() {
-      if(this.id < this.poissonDistribution[this.getStep()])
+      if(this.id < this.distributions!['poisson'][this.getStep()])
       await this.swapExactTokensForTokens()
     }
 
@@ -81,9 +65,9 @@ class AgentSwap {
       // Recipient of the output tokens.
       const to = this.wallet.address
       // deadline
-      const deadline = (await ethers.provider.getBlock("latest")).timestamp + 300
+      const deadline = Math.floor(Date.now() / 1000) + 10
       // ratio tokenA/tokenB
-      const balances = await this.getBalance(this.lpToken.address)
+      let balances = await this.getBalance( this.contracts!['lpToken'].address)
       const tokenA_balance = balances[0]
       const tokenB_balance = balances[1]
 
@@ -94,30 +78,31 @@ class AgentSwap {
       // constant value
       const c = 0.00000001*10**18
       // swap direction
-      if(this.binomialDistribution[this.getStep()] == 1){
+      if(this.distributions!['binomial'][this.getStep()] == 1){
         if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
         else
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()])
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
 
-        path = [this.tokenA.address, this.tokenB.address]
+        path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
       }
       else{
         if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()])
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
         else
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
 
-        path = [this.tokenB.address, this.tokenA.address]
+        path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
       }
 
-      const tx = await this.uniswapV2Router.swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
+      const tx = await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
-      const balances2 = await this.getBalance(this.lpToken.address)
-      const tokenA_balance2 = balances2[0]
-      const tokenB_balance2 = balances2[1]
+      balances = await this.getBalance( this.contracts!['lpToken'].address)
 
-      this.setLiquidityPool(this.name, tokenA_balance2, tokenB_balance2)
+      const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
+      this.printer!.printTxt(txt)
+
+      this.setTrackedResults(this.name, balances)
     }
 }
 

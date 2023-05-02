@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
-import { ethers } from "hardhat"; // PTN il y a un ethers from ethers et un ethers from hardhat
+import { ethers } from "hardhat";
 import uniswapV3PoolABI from '../../../abi/uniswapV3Pool.json'
 import { nearestUsableTick } from '@uniswap/v3-sdk'; // lots of maths without this lib
 
