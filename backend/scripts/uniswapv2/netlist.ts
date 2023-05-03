@@ -6,7 +6,6 @@ import LpTokenABI from '../../abi/LpToken.json'
 import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_address} from '../../utils/address'
 import Simulator from "../../engine/simulator";
 import { MyAgent, MyContractFactory } from "../../engine/types"
-import AgentSwap from "./agents/agentSwap"
 const { JsonRpcProvider } = ethers.providers
 
 export default async function main() {
