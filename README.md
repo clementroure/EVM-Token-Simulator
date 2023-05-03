@@ -15,7 +15,7 @@
 
  ⚠️ To run the examples, your variables must be : 
  1) your Alchemy Goerli rpc url
- 2) a wallet on Goerli that contains :
+ 2) the address of a wallet on Goerli that contains :
  - UNI (0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)
  - WETH (0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6)
  - DAI (0xBa8DCeD3512925e52FE67b1b5329187589072A55)
