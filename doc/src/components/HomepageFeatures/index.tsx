@@ -10,32 +10,34 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: 'How it works',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        TokenSimulatorPRO simulates by simply running a loop. At each iteration, each agent in the netlist takes a step. That's it!
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Why TokenSimulatorPRO',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+      Simulations run 300% faster than the TokenSpice library + Abstract classes allow
+      you to fastly integrate and test your smart contracts.
+
+        {/* Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
+        ahead and move your docs into the <code>docs</code> directory. */}
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Built-in frontend',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Run your simulations from our webapp and get the graphical results.
+        Even your grandma could use it.
       </>
     ),
   },
