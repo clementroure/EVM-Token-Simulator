@@ -2,9 +2,9 @@
  
  Usage
 
- This project has been tested with node v16.13.2
+ This project has been tested with node v16.19.0
 
- - nvm use v16.13.2 (in cmd with administrator privileges)
+ - nvm use v16.19.0 (in cmd with administrator privileges)
 
 
  BACKEND
@@ -18,8 +18,8 @@
  2) the address of a wallet on Goerli that contains :
  - UNI (0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)
  - WETH (0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6)
- - DAI (0xBa8DCeD3512925e52FE67b1b5329187589072A55)
- - USDC (0x65aFADD39029741B3b8f0756952C74678c9cEC93)
+ - DAI (0x68194a729C2450ad26072b3D33ADaCbcef39D574)
+ - USDC (0xda9d4f9b69ac6C22e444eD9aF0CfC043b7a7f53f)
 
  Run the examples with
 
