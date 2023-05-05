@@ -12,17 +12,17 @@ const { JsonRpcProvider } = ethers.providers
 
 export default async function main() {
 
+  // These variables will be removed later //
   const provider = new JsonRpcProvider(process.env.ALCHEMY_URL as string)
-
   const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, provider)
   const tokenA = new ethers.Contract(WETH_address, erc20ABI, provider)
   const tokenB = new ethers.Contract(UNI_address, erc20ABI, provider)
-
   const LpToken_address = await UniswapV2Factory.getPair(UNI_address, WETH_address)
   const LpToken = new ethers.Contract(LpToken_address, LpTokenABI, provider)
-
   var liquidityPool = [await tokenA.callStatic.balanceOf(LpToken.address),  await tokenB.callStatic.balanceOf(LpToken.address)]
+  // end of useless variables //
 
+  // Add the address and the abi of the contracts you want to interact with
   const contracts: MyContractFactory[] = [
     {name: 'uniswapV2Router', address: uniswapV2Router_address, abi: uniswapV2RouterABI},
     {name: 'uniswapV2Factory', address: uniswapV2Factory_address, abi: uniswapV2FactoryABI},
@@ -31,11 +31,13 @@ export default async function main() {
     {name: 'lpToken', address: LpToken_address, abi: LpTokenABI},
   ]
 
+  // agent types and number of each type that will be used within the simulation
   let agents: MyAgent[] = [
     {'type': AgentSwap, nb: 5},
     {'type': AgentLiquidity, nb: 1}
   ]
 
+  // simulation parameters
   const params = {
     simulationDuration: 10,
     normalDistribution: true,
@@ -46,7 +48,8 @@ export default async function main() {
     contracts: contracts
   }
 
-  const simulator = new Simulator(params)
+  // Start the simulation using params
+  new Simulator(params)
 }
 
 main()
