@@ -76,7 +76,7 @@ ALCHEMY_URL=https://eth-goerli.g.alchemy.com/v2/{API_KEY}
 Run the default UniswapV2 scenario :
 
 ```bash
-npx hardhat run scripts/uniswapv2/netlist
+npx hardhat run scripts/uniswapv2/netlist.ts
 ```
 
 ## Test UniswapV3
@@ -84,7 +84,7 @@ npx hardhat run scripts/uniswapv2/netlist
 Run the default UniswapV3 scenario :
 
 ```bash
-npx hardhat run scripts/uniswapv3/netlist
+npx hardhat run scripts/uniswapv3/netlist.ts
 ```
 
 ## Test AAVE
@@ -98,5 +98,5 @@ ALCHEMY_URL=https://eth-sepolia.g.alchemy.com/v2/{API_KEY}
 Run the default AAVE scenario :
 
 ```bash
-npx hardhat run scripts/aave/netlist
+npx hardhat run scripts/aave/netlist.ts
 ```
