@@ -9,7 +9,7 @@ import Stopwatch from 'statman-stopwatch';
 import Printer from "./printer";
 import AgentBase from "./agentBase";
 import AgentSwap from "../scripts/uniswapv2/agents/agentSwap";
-import { MyContractFactory } from "./types";
+import { MyAgent, MyContractFactory } from "./types";
 dotenv.config();
 
 export default class Simulator{
@@ -30,7 +30,7 @@ export default class Simulator{
    constructor(params: {
     simulationDuration: number, 
     normalDistribution: boolean, poissonDistribution: boolean, binomialDistribution: boolean,
-    agentNb: number,
+    agents: MyAgent[],
     trackedResults: number[]
     contracts: MyContractFactory[]
    }){
@@ -38,14 +38,14 @@ export default class Simulator{
     this.trackedResults = params.trackedResults
     this.printer = new Printer(params.trackedResults)
     
-    this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agentNb)
+    this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
    }
 
-   async init(normalDistribution:boolean, poissonDistribution:boolean, binomialDistribution:boolean, contracts:MyContractFactory[], agentNb:number){
+   async init(normalDistribution:boolean, poissonDistribution:boolean, binomialDistribution:boolean, contracts:MyContractFactory[], agents: MyAgent[]){
     await this.generateDistributions(normalDistribution, poissonDistribution, binomialDistribution)
     await this.initWallets()
     await this.generateContracts(contracts)
-    await this.generateAgents(agentNb)
+    await this.generateAgents(agents)
     await this.fundAgents()
     await this.start()
    }
@@ -81,18 +81,20 @@ export default class Simulator{
     }
    }
 
-   async generateAgents(agentNb: number){
-      for(let i=0; i<agentNb; i++){
-        this.agents!.push(
-            new AgentSwap(
-                'swap_'+i.toString(), this.agentWallets![i], this.printer!,
-                this.getStep, this.setTrackedResults,
-                this.contracts!['uniswapV2Router'], this.contracts!['uniswapV2Factory'], 
-                this.contracts!['tokenA'], this.contracts!['tokenB'], this.contracts!['lpToken'],
-                this.distributions!['normal'], this.distributions!['poisson'], this.distributions!['binomial'],
+   async generateAgents(agents: MyAgent[]){
+    for (let i = 0; i< agents.length; i++){
+        for(let j=0; j<agents[i].nb; j++){
+            this.agents!.push(
+                new agents[i].type(
+                    'swap_'+j.toString(), this.agentWallets![j], this.printer!,
+                    this.getStep, this.setTrackedResults,
+                    this.contracts!['uniswapV2Router'], this.contracts!['uniswapV2Factory'], 
+                    this.contracts!['tokenA'], this.contracts!['tokenB'], this.contracts!['lpToken'],
+                    this.distributions!['normal'], this.distributions!['poisson'], this.distributions!['binomial'],
+                )
             )
-        )
-      }
+        }
+    }
    }
 
    async fundAgents(){

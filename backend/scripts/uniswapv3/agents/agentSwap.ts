@@ -27,7 +27,7 @@ class AgentSwap {
       this.name = name;
       this.id = parseInt(name.slice(-1));
       this.wallet = wallet;
-      this.UniswapV3Pool = UniswapV3Pool.connect(wallet);UniswapV3Pool
+      this.UniswapV3Pool = UniswapV3Pool.connect(wallet);
       this. UniswapV3SwapRouter =  UniswapV3SwapRouter.connect(wallet);
       this.UniswapV3Factory = UniswapV3Factory.connect(wallet);
       this.tokenA = tokenA.connect(wallet);

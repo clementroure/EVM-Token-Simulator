@@ -15,7 +15,7 @@ type MyDistribution = {
     distribution: number[]
 }
 type MyAgent = {
-    type: AgentBase,
+    type: any,
     nb: number
 }
 
