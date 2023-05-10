@@ -86,9 +86,9 @@ class AgentSwap extends AgentBase {
 
       await this.getBalance( this.wallet.address)
 
-      const tx = await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
+      await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
-      balances = await this.getBalance( this.contracts!['lpToken'].address)
+      balances = await this.getBalance(this.contracts!['lpToken'].address)
 
       const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
       this.printer!.printTxt(txt)

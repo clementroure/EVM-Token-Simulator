@@ -70,9 +70,9 @@ class AgentLiquidity extends AgentBase{
         const to = this.wallet.address;
         const deadline = Math.floor(Date.now() / 1000) + (60*10)
 
-        const tx = await this.contracts!['uniswapV2Router'].addLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
+        await this.contracts!['uniswapV2Router'].addLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
 
-        balances = await this.getBalance(this.wallet.address)
+        balances = await this.getBalance(this.contracts!['lpToken'].address)
 
         this.setTrackedResults(this.name, balances)
     }
@@ -87,7 +87,7 @@ class AgentLiquidity extends AgentBase{
 
         const liquidity = await this.contracts!['lpToken'].callStatic.balanceOf(to)
 
-        const tx = await this.contracts!['uniswapV2Router'].removeLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, liquidity, amountAMin, amountBMin, to, deadline)
+        await this.contracts!['uniswapV2Router'].removeLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, liquidity, amountAMin, amountBMin, to, deadline)
 
         const balances = await this.getBalance(this.contracts!['lpToken'].address)
 
