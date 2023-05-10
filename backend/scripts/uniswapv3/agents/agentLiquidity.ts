@@ -30,8 +30,8 @@ class AgentLiquidity extends AgentBase {
 
     async init(){
 
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, Number.MAX_SAFE_INTEGER-1)
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, ethers.utils.parseUnits('10000', 18))
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, ethers.utils.parseUnits('10000', 18))
     }
 
     async getBalance(to: string) {
@@ -125,7 +125,7 @@ class AgentLiquidity extends AgentBase {
     async increaseLiquidity(){
 
       // verify if pool exist
-      const pairPoolAddress = await this.contracts!['uniswapV3Pool'].callStatic.getPool( this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address, 3000)
+      const pairPoolAddress = await this.contracts!['uniswapV3Factory'].callStatic.getPool( this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address, 3000)
 
       const amountDesired = await this.getAmountDesired(pairPoolAddress)
 
@@ -135,10 +135,10 @@ class AgentLiquidity extends AgentBase {
         amount1Desired: amountDesired[1],
         amount0Min: 1,
         amount1Min: 1,
-        deadline:  (await ethers.provider.getBlock("latest")).timestamp + 3
+        deadline: Math.floor(Date.now() / 1000) + (60*10)
       }
 
-      const tx = await this.contracts!['uniswapV3NonFungiblePositionManager'].increaseLiquidity(params)
+      await this.contracts!['uniswapV3NonFungiblePositionManager'].increaseLiquidity(params)
 
       this.updatePool(pairPoolAddress)
     }
@@ -161,10 +161,10 @@ class AgentLiquidity extends AgentBase {
         liquidity: halfLiquidity,
         amount0Min: 1,
         amount1Min: 1,
-        deadline:  (await ethers.provider.getBlock("latest")).timestamp + 3
+        deadline:  Math.floor(Date.now() / 1000) + (60*10)
       }
 
-      const tx = await this.contracts!['uniswapV3NonFungiblePositionManager'].decreaseLiquidity(params)
+      await this.contracts!['uniswapV3NonFungiblePositionManager'].decreaseLiquidity(params)
     }
 
     async updatePool(poolAddress: string) {

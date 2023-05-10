@@ -2,6 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
 import AgentBase from '../../../engine/agentBase'
 import Printer from "../../../engine/printer";
+import { ethers } from "hardhat";
 
 class AgentSwap extends AgentBase {
 
@@ -25,8 +26,8 @@ class AgentSwap extends AgentBase {
 
     async init(){
 
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3SwapRouter'].address, Number.MAX_SAFE_INTEGER-1)
-      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV3SwapRouter'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3SwapRouter'].address, ethers.utils.parseUnits('10000', 18))
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV3SwapRouter'].address, ethers.utils.parseUnits('10000', 18))
     }
 
     async getBalance(to: string) {
@@ -106,7 +107,7 @@ class AgentSwap extends AgentBase {
         amountOutMinimum : 1,
         sqrtPriceLimitX96: 0,
         recipient: this.wallet.address,
-        deadline: Math.floor(Date.now() / 1000) + 10
+        deadline: Math.floor(Date.now() / 1000) + (60*10)
       }
 
       const tx = await this.contracts!['uniswapV3SwapRouter'].exactInputSingle(params)

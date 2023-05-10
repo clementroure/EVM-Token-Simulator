@@ -2,6 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
 import AgentBase from '../../../engine/agentBase'
 import Printer from "../../../engine/printer";
+import { ethers } from "hardhat";
 
 class AgentSwap extends AgentBase {
 
@@ -25,8 +26,8 @@ class AgentSwap extends AgentBase {
 
     async init(){
 
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
-      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
     }
 
     async getBalance(to: string) {
@@ -53,7 +54,7 @@ class AgentSwap extends AgentBase {
       // Recipient of the output tokens.
       const to = this.wallet.address
       // deadline
-      const deadline = Math.floor(Date.now() / 1000) + 1000
+      const deadline = Math.floor(Date.now() / 1000) + (60*10)
       // ratio tokenA/tokenB
       let balances = await this.getBalance( this.contracts!['lpToken'].address)
       const tokenA_balance = balances[0]

@@ -27,8 +27,8 @@ export default async function main() {
   const contracts: MyContractFactory[] = [
     {name: 'uniswapV2Router', address: uniswapV2Router_address, abi: uniswapV2RouterABI},
     {name: 'uniswapV2Factory', address: uniswapV2Factory_address, abi: uniswapV2FactoryABI},
-    {name: 'tokenA', address: WETH_address, abi: erc20ABI},
-    {name: 'tokenB', address: UNI_address, abi: erc20ABI},
+    {name: 'tokenA', address: UNI_address, abi: erc20ABI},
+    {name: 'tokenB', address: WETH_address, abi: erc20ABI},
     {name: 'lpToken', address: LpToken_address, abi: LpTokenABI},
   ]
 
@@ -44,7 +44,7 @@ export default async function main() {
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,
-    agents,
+    agents: agents,
     trackedResults: liquidityPool,
     contracts: contracts
   }

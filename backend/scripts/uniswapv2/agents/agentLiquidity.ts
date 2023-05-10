@@ -26,9 +26,9 @@ class AgentLiquidity extends AgentBase{
 
     async init(){
 
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
-      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
-      await this.contracts!['lpToken'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
+      await this.contracts!['lpToken'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
     }
 
     async getBalance(to: string) {
@@ -68,7 +68,7 @@ class AgentLiquidity extends AgentBase{
         const amountBMin = 1
 
         const to = this.wallet.address;
-        const deadline = (await ethers.provider.getBlock("latest")).timestamp + 300
+        const deadline = Math.floor(Date.now() / 1000) + (60*10)
 
         const tx = await this.contracts!['uniswapV2Router'].addLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
 
@@ -83,7 +83,7 @@ class AgentLiquidity extends AgentBase{
         const amountBMin = 1
         
         const to = this.wallet.address;
-        const deadline =  (await ethers.provider.getBlock("latest")).timestamp + 300
+        const deadline =  Math.floor(Date.now() / 1000) + (60*10)
 
         const liquidity = await this.contracts!['lpToken'].callStatic.balanceOf(to)
 

@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { Contract } from "ethers"
-import {MyContract, MyDistribution} from './types'
 import Printer from "./printer"
 
 abstract class AgentBase {

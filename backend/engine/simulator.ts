@@ -101,8 +101,11 @@ export default class Simulator{
 
    async fundAgents(){
     for(let i=0; i<this.agents!.length; i++){
-        await this.contracts!['tokenA'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.0001', 18))
-        await this.contracts!['tokenB'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.01', 18))
+        await this.contracts!['tokenA'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.01', 18))
+        await this.contracts!['tokenB'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.0001', 18))
+        // sepolia aave
+        // await this.contracts!['tokenA'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('100', 18))
+        // await this.contracts!['tokenB'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('100', 6))
     }
    }
 

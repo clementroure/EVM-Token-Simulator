@@ -15,17 +15,9 @@ export default async function main() {
 
   const provider = new JsonRpcProvider(process.env.ALCHEMY_URL as string)
   // const provider = new JsonRpcProvider('http://127.0.0.1:8545/') // server backend - npx hardhat node (other terminal)
-
-  // const UniswapV3NonFungiblePositionManager = new ethers.Contract(uniswapV3NonFungiblePositionManager_address, uniswapV3NonFungiblePositionManagerABI, provider);
   const UniswapV3Factory= new ethers.Contract(uniswapV3Factory_address, uniswapV3FactoryABI, provider);
-  // const UniswapV3SwapRouter= new ethers.Contract(uniswapV3SwapRouter_address, uniswapV3SwapRouterABI, provider);
-  const tokenA = new ethers.Contract(WETH_address, erc20ABI, provider)
-  const tokenB = new ethers.Contract(UNI_address, erc20ABI, provider)
   // verify if pool exist
-  const pairPoolAddress = await UniswapV3Factory.callStatic.getPool(tokenA.address, tokenB.address, 3000)
-  // const UniswapV3Pool = new ethers.Contract(pairPoolAddress, uniswapV3PoolABI, provider);
-  //
-  var liquidityPool = [0,0]
+  const pairPoolAddress = await UniswapV3Factory.callStatic.getPool(UNI_address, WETH_address, 3000)
 
   // Add the address and the abi of the contracts you want to interact with
   const contracts: MyContractFactory[] = [
@@ -33,8 +25,8 @@ export default async function main() {
     {name: 'uniswapV3Factory', address: uniswapV3Factory_address, abi: uniswapV3FactoryABI},
     {name: 'uniswapV3Pool', address: pairPoolAddress, abi: uniswapV3PoolABI},
     {name: 'uniswapV3NonFungiblePositionManager', address: uniswapV3NonFungiblePositionManager_address, abi: uniswapV3NonFungiblePositionManagerABI},
-    {name: 'tokenA', address: WETH_address, abi: erc20ABI},
-    {name: 'tokenB', address: UNI_address, abi: erc20ABI},
+    {name: 'tokenA', address: UNI_address, abi: erc20ABI},
+    {name: 'tokenB', address: WETH_address, abi: erc20ABI},
   ]
 
   // agent types and number of each type that will be used within the simulation
@@ -49,8 +41,8 @@ export default async function main() {
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,
-    agents,
-    trackedResults: liquidityPool,
+    agents: agents,
+    trackedResults: [0,0],
     contracts: contracts
   }
 
