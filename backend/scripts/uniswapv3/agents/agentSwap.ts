@@ -1,57 +1,40 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
-import { ethers } from "hardhat";
+import AgentBase from '../../../engine/agentBase'
+import Printer from "../../../engine/printer";
 
-class AgentSwap {
-    name: string;
-    id: number;
-    wallet: SignerWithAddress;
-    UniswapV3Pool: Contract;
-    UniswapV3SwapRouter: Contract;
-    UniswapV3Factory: Contract;
-    tokenA: Contract;
-    tokenB: Contract;
-    normalDistribution: number[];
-    poissonDistribution: number[];
-    binomialDistribution: number[];
-    getStep: Function;
-    getCurrentBlock: Function;
-    setLiquidityPool: Function;
-  
+class AgentSwap extends AgentBase {
+
     constructor(
-      name: string, wallet: SignerWithAddress, godWallet: SignerWithAddress, UniswapV3Pool: Contract,
-      UniswapV3SwapRouter: Contract, UniswapV3Factory: Contract, tokenA: Contract, tokenB: Contract, 
-      normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
-      getStep: Function, getCurrentBlock: Function, setLiquidtyPool: Function
+      name: string, wallet: SignerWithAddress, printer: Printer,
+      getStep: Function, setTrackedResults: Function,
+      distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
-      this.name = name;
-      this.id = parseInt(name.slice(-1));
-      this.wallet = wallet;
-      this.UniswapV3Pool = UniswapV3Pool.connect(wallet);
-      this. UniswapV3SwapRouter =  UniswapV3SwapRouter.connect(wallet);
-      this.UniswapV3Factory = UniswapV3Factory.connect(wallet);
-      this.tokenA = tokenA.connect(wallet);
-      this.tokenB = tokenB.connect(wallet);
-      this.normalDistribution = normalDistribution;
-      this.poissonDistribution = poissonDistribution;
-      this.binomialDistribution = binomialDistribution;
-      this.getStep = getStep;
-      this.getCurrentBlock = getCurrentBlock;
-      this.setLiquidityPool = setLiquidtyPool;
+      super(
+        name,
+        wallet, 
+        printer,
+        getStep,
+        setTrackedResults,
+        distributions,
+        contracts
+      )
 
       this.init()
     }
 
     async init(){
 
-      await this.tokenA.approve(this.UniswapV3SwapRouter.address, Number.MAX_SAFE_INTEGER-1)
-      await this.tokenB.approve(this.UniswapV3SwapRouter.address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3SwapRouter'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenB'].approve(this.contracts!['uniswapV3SwapRouter'].address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {
 
-        const tokenA_balance = await this.tokenA.callStatic.balanceOf(to)
-        const tokenB_balance = await this.tokenB.callStatic.balanceOf(to)
+        const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
+        const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
+        // console.log('UNI: ' + tokenA_balance / 10**18)
+        // console.log('WETH: ' + tokenB_balance / 10**18)
   
         return [tokenA_balance, tokenB_balance]
     }
@@ -92,17 +75,17 @@ class AgentSwap {
       const c = 0.000000001*10**18
       let amountIn: number;
       // swap direction
-      if(this.binomialDistribution[this.getStep()] == 1){
+      if(this.distributions!['binomial'][this.getStep()] == 1){
         if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
         else
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()])
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
       }
       else{
         if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()])
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
         else
-        amountIn = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
+        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
       }
 
       return amountIn
@@ -110,36 +93,35 @@ class AgentSwap {
 
     async swapExactInputSingle() {
 
-      const poolData = await this.getPoolData(this.UniswapV3Pool)
+      const poolData = await this.getPoolData(this.contracts!['uniswapV3Pool'])
       
-      const amountDesired = await this.getAmountDesired(this.UniswapV3Pool.address)
+      const amountDesired = await this.getAmountDesired(this.contracts!['uniswapV3Pool'].address)
       
       // 
       const params = {
-        tokenIn: this.tokenA.address,
-        tokenOut: this.tokenB.address,
+        tokenIn: this.contracts!['tokenA'].address,
+        tokenOut: this.contracts!['tokenB'].address,
         fee: poolData.fee,
         amountIn: amountDesired,
         amountOutMinimum : 1,
         sqrtPriceLimitX96: 0,
         recipient: this.wallet.address,
-        deadline: (await ethers.provider.getBlock("latest")).timestamp + 3
+        deadline: Math.floor(Date.now() / 1000) + 10
       }
 
-      const tx = await this. UniswapV3SwapRouter.exactInputSingle(params)
+      const tx = await this.contracts!['uniswapV3SwapRouter'].exactInputSingle(params)
 
-      this.updatePool(this.UniswapV3Pool.address)
+      this.updatePool(this.contracts!['uniswapV3Pool'].address)
     }
 
     async updatePool(poolAddress: string) {
 
       const balances = await this.getBalance(poolAddress)
-      const tokenA_balance = balances[0]
-      const tokenB_balance = balances[1]
 
-      console.log(balances)
+      const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
+      this.printer!.printTxt(txt)
 
-      this.setLiquidityPool(this.name, tokenA_balance, tokenB_balance)
+      this.setTrackedResults(this.name, balances)
     }
 
 }

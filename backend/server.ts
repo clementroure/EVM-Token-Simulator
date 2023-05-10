@@ -2,7 +2,8 @@
 import express from "express";
 import * as dotenv from "dotenv";
 import main from './scripts/uniswapv2/netlist'
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
+import path from 'path';
 dotenv.config();
 const app = express();
 
@@ -22,19 +23,8 @@ app.get('/',(req,res) => {
   res.send('EVM agent-based token simulator - REST API')
 });
 
-app.get('/uniswapv2',(req,res) => {
- 
-  // const output = execSync('npx hardhat run ./scripts/uniswapv2/netlist.ts', { encoding: 'utf-8' });
-  // console.log(output)
+app.get('/uniswapv2', (req, res) => {
   main()
-    .then(() => {
-      console.log("UniswapV2 simulation completed !"); 
-      res.send('UniswapV2 simulation completed !')}
-    )
-    .catch((error) => {
-      console.error("ERROR : UniswapV2 simulation crashed.", error)
-      res.send('ERROR : UniswapV2 simulation crashed.')}
-    )
 });
 
 

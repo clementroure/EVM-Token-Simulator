@@ -1,18 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
-import { testUtils } from 'hardhat';
 import { ethers } from "hardhat"; 
 import AgentBase from "../../../engine/agentBase";
 import Printer from "../../../engine/printer";
-const { block } = testUtils
 
 class AgentLiquidity extends AgentBase{
  
     constructor(
       name: string, wallet: SignerWithAddress,  printer: Printer, 
       getStep: Function, setTrackedResults: Function,
-      uniswapV2Router: Contract ,uniswapV2Factory: Contract, tokenA: Contract, tokenB: Contract, lpToken: Contract,
-      normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
+      distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
       super(
         name,
@@ -20,18 +17,8 @@ class AgentLiquidity extends AgentBase{
         printer,
         getStep,
         setTrackedResults,
-        [
-          {name: 'normal', distribution: normalDistribution},
-          {name: 'poisson', distribution: poissonDistribution},
-          {name: 'binomial', distribution: binomialDistribution}
-        ],
-        [
-          {name: 'uniswapV2Router', contract: uniswapV2Router},
-          {name: 'uniswapV2Factory', contract: uniswapV2Factory},
-          {name: 'lpToken', contract: lpToken},
-          {name: 'tokenA', contract: tokenA},
-          {name: 'tokenB', contract: tokenB}
-        ]
+        distributions,
+        contracts
       )
 
       this.init()
@@ -48,7 +35,6 @@ class AgentLiquidity extends AgentBase{
 
       const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
       const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
-
       // console.log('UNI: ' + tokenA_balance / 10**18)
       // console.log('WETH: ' + tokenB_balance / 10**18)
 

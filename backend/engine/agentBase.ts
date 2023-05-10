@@ -16,20 +16,18 @@ abstract class AgentBase {
 
     constructor(
         name: String, wallet: SignerWithAddress,  printer: Printer, getStep: Function, setTrackedResults: Function,
-        distributions?: MyDistribution[], contracts?: MyContract[],
+        distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract },
     ){
         this.name = name
         this.id = parseInt(name.slice(-1))
         this.wallet = wallet
         this.printer = printer
         this.getStep = getStep,
-        this.setTrackedResults = setTrackedResults
+        this.setTrackedResults = setTrackedResults,
         // optional
-        for (let i = 0; i < distributions!.length; i++)
-            this.distributions![`${distributions![i].name}`] = distributions![i].distribution
-        for (let i = 0; i < contracts!.length; i++) 
-            this.contracts![`${contracts![i].name}`] = contracts![i].contract.connect(wallet)
-    }
+        this.distributions = distributions,
+        this.contracts = contracts
+     }
     
     abstract init(): Promise<void>
 

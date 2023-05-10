@@ -8,8 +8,7 @@ class AgentSwap extends AgentBase {
     constructor(
       name: string, wallet: SignerWithAddress, printer: Printer,
       getStep: Function, setTrackedResults: Function,
-      uniswapV2Router: Contract, uniswapV2Factory: Contract, tokenA: Contract, tokenB: Contract, lpToken: Contract,
-      normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
+      distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
       super(
         name,
@@ -17,18 +16,8 @@ class AgentSwap extends AgentBase {
         printer,
         getStep,
         setTrackedResults,
-        [
-          {name: 'normal', distribution: normalDistribution},
-          {name: 'poisson', distribution: poissonDistribution},
-          {name: 'binomial', distribution: binomialDistribution}
-        ],
-        [
-          {name: 'uniswapV2Router', contract: uniswapV2Router},
-          {name: 'uniswapV2Factory', contract: uniswapV2Factory},
-          {name: 'lpToken', contract: lpToken},
-          {name: 'tokenA', contract: tokenA},
-          {name: 'tokenB', contract: tokenB}
-        ]
+        distributions,
+        contracts
       )
 
       this.init()
@@ -44,7 +33,6 @@ class AgentSwap extends AgentBase {
 
         const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
         const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
-  
         // console.log('UNI: ' + tokenA_balance / 10**18)
         // console.log('WETH: ' + tokenB_balance / 10**18)
   
@@ -65,7 +53,7 @@ class AgentSwap extends AgentBase {
       // Recipient of the output tokens.
       const to = this.wallet.address
       // deadline
-      const deadline = Math.floor(Date.now() / 1000) + 10
+      const deadline = Math.floor(Date.now() / 1000) + 1000
       // ratio tokenA/tokenB
       let balances = await this.getBalance( this.contracts!['lpToken'].address)
       const tokenA_balance = balances[0]
@@ -94,6 +82,8 @@ class AgentSwap extends AgentBase {
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
       }
+
+      await this.getBalance( this.wallet.address)
 
       const tx = await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 

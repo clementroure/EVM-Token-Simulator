@@ -84,13 +84,15 @@ export default class Simulator{
    async generateAgents(agents: MyAgent[]){
     for (let i = 0; i< agents.length; i++){
         for(let j=0; j<agents[i].nb; j++){
+            // define the new agent as the contracts caller ('from')
+            for (const key in this.contracts) 
+                this.contracts![key] = this.contracts![key].connect(this.agentWallets[j])
+            // instantiate agent
             this.agents!.push(
                 new agents[i].type(
-                    'swap_'+j.toString(), this.agentWallets![j], this.printer!,
+                    'swap_'+j.toString(), this.agentWallets[j], this.printer,
                     this.getStep, this.setTrackedResults,
-                    this.contracts!['uniswapV2Router'], this.contracts!['uniswapV2Factory'], 
-                    this.contracts!['tokenA'], this.contracts!['tokenB'], this.contracts!['lpToken'],
-                    this.distributions!['normal'], this.distributions!['poisson'], this.distributions!['binomial'],
+                    this.distributions, this.contracts
                 )
             )
         }

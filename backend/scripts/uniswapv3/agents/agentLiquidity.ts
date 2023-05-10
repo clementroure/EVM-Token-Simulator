@@ -1,61 +1,43 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import uniswapV3PoolABI from '../../../abi/uniswapV3Pool.json'
 import { nearestUsableTick } from '@uniswap/v3-sdk'; // lots of maths without this lib
+import Printer from "../../../engine/printer";
+import AgentBase from "../../../engine/agentBase";
 
-class AgentLiquidity {
-    name: string;
-    id: number;
-    wallet: SignerWithAddress;
-    UniswapV3Pool: Contract;
-    UniswapV3NonFungiblePositionManager: Contract;
-    UniswapV3Factory: Contract;
-    tokenA: Contract;
-    tokenB: Contract;
-    normalDistribution: number[];
-    poissonDistribution: number[];
-    binomialDistribution: number[];
-    getStep: Function;
-    getCurrentBlock: Function;
-    setLiquidityPool: Function;
+class AgentLiquidity extends AgentBase {
+    // lp nft token id
     liquidityTokenId: number;
-  
+
     constructor(
-      name: string, wallet: SignerWithAddress, godWallet: SignerWithAddress, UniswapV3Pool: Contract, 
-      UniswapV3NonFungiblePositionManager: Contract, UniswapV3Factory: Contract, tokenA: Contract, tokenB: Contract, 
-      normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
-      getStep: Function, getCurrentBlock: Function, setLiquidtyPool: Function
+      name: string, wallet: SignerWithAddress, printer: Printer,
+      getStep: Function, setTrackedResults: Function,
+      distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
-      this.name = name;
-      this.id = parseInt(name.slice(-1));
-      this.wallet = wallet;
-      this.UniswapV3Pool = UniswapV3Pool.connect(wallet);
-      this.UniswapV3NonFungiblePositionManager = UniswapV3NonFungiblePositionManager.connect(wallet);
-      this.UniswapV3Factory = UniswapV3Factory.connect(wallet);
-      this.tokenA = tokenA.connect(wallet);
-      this.tokenB = tokenB.connect(wallet);
-      this.normalDistribution = normalDistribution;
-      this.poissonDistribution = poissonDistribution;
-      this.binomialDistribution = binomialDistribution;
-      this.getStep = getStep;
-      this.getCurrentBlock = getCurrentBlock;
-      this.setLiquidityPool = setLiquidtyPool;
-      this.liquidityTokenId = -1;
+      super(
+        name,
+        wallet, 
+        printer,
+        getStep,
+        setTrackedResults,
+        distributions,
+        contracts
+      )
+      this.liquidityTokenId = -1
 
       this.init()
     }
 
     async init(){
 
-      await this.tokenA.approve(this.UniswapV3NonFungiblePositionManager.address, Number.MAX_SAFE_INTEGER-1)
-      await this.tokenB.approve(this.UniswapV3NonFungiblePositionManager.address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV3NonFungiblePositionManager'].address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {
 
-        const tokenA_balance = await this.tokenA.callStatic.balanceOf(to)
-        const tokenB_balance = await this.tokenB.callStatic.balanceOf(to)
+        const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
+        const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
   
         return [tokenA_balance, tokenB_balance]
     }
@@ -64,7 +46,7 @@ class AgentLiquidity {
       if(this.liquidityTokenId == -1)
       await this.mint()
       else{
-        if(this.binomialDistribution[this.getStep()] == 1)
+        if(this.distributions!['binomial'][this.getStep()] == 1)
         await this.increaseLiquidity()
         else
         await this.decreaseLiquidity()
@@ -102,22 +84,22 @@ class AgentLiquidity {
 
       const c = 0.0000001*10**18
 
-      const amountADesired = Math.round(c * this.normalDistribution[this.getStep()] * ratio)
-      const amountBDesired = Math.round(c * this.normalDistribution[this.getStep()])
+      const amountADesired = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
+      const amountBDesired = Math.round(c * this.distributions!['normal'][this.getStep()])
 
       return [amountADesired, amountBDesired]
     }
 
     async mint() {
 
-      const poolData = await this.getPoolData(this.UniswapV3Pool)
+      const poolData = await this.getPoolData(this.contracts!['uniswapV3Pool'])
       
-      const amountDesired = await this.getAmountDesired(this.UniswapV3Pool.address)
+      const amountDesired = await this.getAmountDesired(this.contracts!['uniswapV3Pool'].address)
 
       // mint a new position to add liquidity
       const params = {
-        token0: this.tokenA.address,
-        token1: this.tokenB.address,
+        token0: this.contracts!['tokenA'].address,
+        token1:  this.contracts!['tokenB'].address,
         fee: poolData.fee,
         tickLower: nearestUsableTick(poolData.tick, poolData.tickSpacing) - poolData.tickSpacing * 2,
         tickUpper: nearestUsableTick(poolData.tick, poolData.tickSpacing) + poolData.tickSpacing * 2,
@@ -129,7 +111,7 @@ class AgentLiquidity {
         deadline: Math.floor(Date.now() / 1000) + (60*10)
       }
 
-      const tx = await this.UniswapV3NonFungiblePositionManager.mint(params)
+      const tx = await this.contracts!['uniswapV3NonFungiblePositionManager'].mint(params)
       const rc = await tx.wait() 
       const event = rc.events.find((event: { event: string; }) => event.event === 'Transfer');
       const [from, to, value] = event.args;
@@ -137,13 +119,13 @@ class AgentLiquidity {
       this.liquidityTokenId = parseInt(value);
       console.log('MINTED ', this.liquidityTokenId)
 
-      this.updatePool(this.UniswapV3Pool.address)
+      this.updatePool(this.contracts!['uniswapV3Pool'].address)
     }
 
     async increaseLiquidity(){
 
       // verify if pool exist
-      const pairPoolAddress = await this.UniswapV3Factory.callStatic.getPool(this.tokenA.address, this.tokenB.address, 3000)
+      const pairPoolAddress = await this.contracts!['uniswapV3Pool'].callStatic.getPool( this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address, 3000)
 
       const amountDesired = await this.getAmountDesired(pairPoolAddress)
 
@@ -156,14 +138,14 @@ class AgentLiquidity {
         deadline:  (await ethers.provider.getBlock("latest")).timestamp + 3
       }
 
-      const tx = await this.UniswapV3NonFungiblePositionManager.increaseLiquidity(params)
+      const tx = await this.contracts!['uniswapV3NonFungiblePositionManager'].increaseLiquidity(params)
 
       this.updatePool(pairPoolAddress)
     }
 
     async decreaseLiquidity(){
 
-      const res = await this.UniswapV3NonFungiblePositionManager.callStatic.positions(this.liquidityTokenId)
+      const res = await this.contracts!['uniswapV3NonFungiblePositionManager'].callStatic.positions(this.liquidityTokenId)
 
       const totalLiquidity= res.liquidity
       console.log('Liquidity will decrease from ', totalLiquidity)
@@ -182,18 +164,17 @@ class AgentLiquidity {
         deadline:  (await ethers.provider.getBlock("latest")).timestamp + 3
       }
 
-      const tx = await this.UniswapV3NonFungiblePositionManager.decreaseLiquidity(params)
+      const tx = await this.contracts!['uniswapV3NonFungiblePositionManager'].decreaseLiquidity(params)
     }
 
     async updatePool(poolAddress: string) {
 
       const balances = await this.getBalance(poolAddress)
-      const tokenA_balance = balances[0]
-      const tokenB_balance = balances[1]
 
-      console.log(balances)
+      const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
+      this.printer!.printTxt(txt)
 
-      this.setLiquidityPool(this.name, tokenA_balance, tokenB_balance)
+      this.setTrackedResults(this.name, balances)
     }
 }
 

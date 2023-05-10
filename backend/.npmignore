@@ -1,3 +1,10 @@
-hardhat.config.ts
-scripts
-test
+node_modules
+.env
+coverage
+coverage.json
+typechain
+outdir_data
+
+#Hardhat files
+cache
+artifacts

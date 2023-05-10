@@ -8,8 +8,7 @@ class AgentLender extends AgentBase {
     constructor(
       name: string, wallet: SignerWithAddress, printer: Printer,
       getStep: Function, setTrackedResults: Function,
-      AAVEpool: Contract, tokenA: Contract, tokenB: Contract,
-      normalDistribution: number[], poissonDistribution: number[], binomialDistribution: number[],
+      distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
       super(
         name,
@@ -17,16 +16,8 @@ class AgentLender extends AgentBase {
         printer,
         getStep,
         setTrackedResults,
-        [
-          {name: 'normal', distribution: normalDistribution},
-          {name: 'poisson', distribution: poissonDistribution},
-          {name: 'binomial', distribution: binomialDistribution}
-        ],
-        [
-        {name: 'AAVEpool', contract: AAVEpool},
-        {name: 'tokenA', contract: tokenA},
-        {name: 'tokenB', contract: tokenB}
-        ]
+        distributions,
+        contracts
       )
 
       this.init()
@@ -34,7 +25,7 @@ class AgentLender extends AgentBase {
 
     async init(){
       // approve DAI
-      await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, Number.MAX_SAFE_INTEGER-1)
+      await this.contracts!['tokenA'].approve(this.contracts!['AAVEpool'].address, Number.MAX_SAFE_INTEGER-1)
     }
 
     async getBalance(to: string) {

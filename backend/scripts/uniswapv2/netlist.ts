@@ -14,6 +14,7 @@ export default async function main() {
 
   // These variables will be removed later //
   const provider = new JsonRpcProvider(process.env.ALCHEMY_URL as string)
+  // const provider = new JsonRpcProvider('http://127.0.0.1:8545/') // server backend - npx hardhat node (other terminal)
   const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, provider)
   const tokenA = new ethers.Contract(WETH_address, erc20ABI, provider)
   const tokenB = new ethers.Contract(UNI_address, erc20ABI, provider)
