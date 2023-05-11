@@ -8,8 +8,7 @@ import { binomial_distribution, normal_distribution, poisson_distribution } from
 import Stopwatch from 'statman-stopwatch';
 import Printer from "./printer";
 import AgentBase from "./agentBase";
-import AgentSwap from "../scripts/uniswapv2/agents/agentSwap";
-import { MyAgent, MyContractFactory } from "./types";
+import { MyAgent, MyContractFactory, Token } from "../utils/types";
 dotenv.config();
 
 export default class Simulator{
@@ -26,17 +25,20 @@ export default class Simulator{
    simulationDuration: number
    distributions?: { [key: string]: number[] } = {}
    contracts?: { [key: string]: Contract } = {}
+   tokens?: Token[]
 
    constructor(params: {
     simulationDuration: number, 
     normalDistribution: boolean, poissonDistribution: boolean, binomialDistribution: boolean,
     agents: MyAgent[],
-    trackedResults: number[]
-    contracts: MyContractFactory[]
+    trackedResults: number[],
+    contracts: MyContractFactory[],
+    tokens: Token[]
    }){
     this.simulationDuration = params.simulationDuration
     this.trackedResults = params.trackedResults
     this.printer = new Printer(params.trackedResults)
+    this.tokens = params.tokens
     
     this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
    }
@@ -101,11 +103,11 @@ export default class Simulator{
 
    async fundAgents(){
     for(let i=0; i<this.agents!.length; i++){
-        await this.contracts!['tokenA'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.01', 18))
-        await this.contracts!['tokenB'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('0.0001', 18))
-        // sepolia aave
-        // await this.contracts!['tokenA'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('100', 18))
-        // await this.contracts!['tokenB'].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits('100', 6))
+        
+        for(let j=0;j<this.tokens!.length;j++){
+             
+            await this.contracts![this.tokens![j].name].connect(this.godWallet!).transfer(this.agents![i].wallet.address, ethers.utils.parseUnits(this.tokens![j].amount.toString(), this.tokens![j].decimals))
+        }
     }
    }
 

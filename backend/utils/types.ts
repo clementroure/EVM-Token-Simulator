@@ -1,5 +1,5 @@
 import { Contract } from "ethers"
-import AgentBase from "./agentBase"
+import AgentBase from "../engine/agentBase"
 
 type MyContract = {
     name: string,
@@ -19,4 +19,10 @@ type MyAgent = {
     nb: number
 }
 
-export {MyContract, MyDistribution, MyContractFactory, MyAgent}
+type Token = {
+    name: string,
+    decimals: number,
+    amount: number
+}
+
+export {MyContract, MyDistribution, MyContractFactory, MyAgent, Token}

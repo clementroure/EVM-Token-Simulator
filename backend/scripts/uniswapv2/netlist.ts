@@ -4,8 +4,8 @@ import uniswapV2FactoryABI from '../../abi/UniswapV2Factory.json'
 import erc20ABI from '../../abi/ERC20.json'
 import LpTokenABI from '../../abi/LpToken.json'
 import {uniswapV2Router_address, uniswapV2Factory_address, UNI_address, WETH_address} from '../../utils/address'
-import Simulator from "../../engine/simulator";
-import { MyAgent, MyContractFactory } from "../../engine/types"
+import Simulator from "../../engine/simulator"
+import { MyAgent, MyContractFactory, Token } from "../../utils/types"
 import AgentSwap from "./agents/agentSwap"
 import AgentLiquidity from "./agents/agentLiquidity"
 const { JsonRpcProvider } = ethers.providers
@@ -31,13 +31,17 @@ export default async function main() {
     {name: 'tokenB', address: WETH_address, abi: erc20ABI},
     {name: 'lpToken', address: LpToken_address, abi: LpTokenABI},
   ]
-
+  // define quantity of tokens needed my each agent
+  // WARNING: names have to be the same as your contarcts
+  let tokens: Token[] = [
+    {name: 'tokenA', decimals: 18, amount: 0.01},
+    {name: 'tokenB', decimals: 18, amount: 0.0001}
+  ]
   // agent types and number of each type that will be used within the simulation
   let agents: MyAgent[] = [
     {'type': AgentSwap, nb: 5},
     {'type': AgentLiquidity, nb: 1}
   ]
-
   // simulation parameters
   const params = {
     simulationDuration: 10,
@@ -46,9 +50,9 @@ export default async function main() {
     binomialDistribution: true,
     agents: agents,
     trackedResults: liquidityPool,
-    contracts: contracts
+    contracts: contracts,
+    tokens: tokens
   }
-
   // Start the simulation using params
   new Simulator(params)
 }
