@@ -9,3 +9,4 @@ outdir_data
 #Hardhat files
 cache
 artifacts
+typechain-types

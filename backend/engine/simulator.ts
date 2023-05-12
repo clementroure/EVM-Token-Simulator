@@ -3,12 +3,13 @@ import { Contract, ethers as eth } from "ethers";
 const { JsonRpcProvider } = ethers.providers;
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import * as dotenv from "dotenv";
-import { binomial_distribution, normal_distribution, poisson_distribution } from "../utils/distributions";
+import { binomial_distribution, calculateBlackScholesPrice, normal_distribution, poisson_distribution } from "../utils/distributions";
 // @ts-ignore
 import Stopwatch from 'statman-stopwatch';
 import Printer from "./printer";
 import AgentBase from "./agentBase";
 import { MyAgent, MyContractFactory, Token } from "../utils/types";
+import { boolean } from "hardhat/internal/core/params/argumentTypes";
 dotenv.config();
 
 export default class Simulator{
@@ -61,14 +62,14 @@ export default class Simulator{
         this.distributions![`normal`] = normalDistributionArray
     }
     if(poissonDistribution){
-        const poissonDistributionArray = poisson_distribution(2, this.simulationDuration+1)
+        const poissonDistributionArray = poisson_distribution(14, this.simulationDuration+1)
         this.distributions![`poisson`] = poissonDistributionArray
     }
     if(binomialDistribution){
         const binomialDistributionArray = binomial_distribution(1,0.5, this.simulationDuration+1)
         this.distributions![`binomial`] = binomialDistributionArray
     }
-    let txt = 'Normal Distribution: ' + this.distributions![`normal`].toString() + '\n' + 'Poisson Distribution: ' + this.distributions![`poisson`].toString() + '\n' + 'Binomial Distribution: ' + this.distributions![`binomial`].toString() + '\n'
+    let txt = 'Normal Distribution: ' + this.distributions![`normal`].toString() + '\n' + 'Poisson Distribution: ' + this.distributions![`poisson`].toString() + '\n'
     this.printer!.initTxt(txt)
    }
 
@@ -114,9 +115,9 @@ export default class Simulator{
    async start(){
 
      console.log('Simulation started')
-     const txt =  'Initialisation' + ' -> amountA: ' +  this.trackedResults[0]/10**18 + ' amountB: ' + this.trackedResults[1]/10**18 + '\n'
-     this.printer!.printTxt(txt)
-     await this.printer!.printCsv(this.step, this.trackedResults)
+    //  const txt =  'Initialisation' + ' -> amountA: ' +  this.trackedResults[1]/10**18 + ' amountB: ' + this.trackedResults[0]/10**6 + '\n'
+    //  this.printer!.printTxt(txt)
+    //  await this.printer!.printCsv(this.step, this.trackedResults)
 
      this.stopwatch.start()
 
@@ -129,11 +130,26 @@ export default class Simulator{
 
    async takeStep(){
      console.log('step: ' + this.step)
-     for(let i =0; i<this.agents!.length; i++){
-        await this.agents![i].takeStep()
+     // MARKET PRICE
+     const initialPrice = 1800; // Assuming initial price P_t = 1800
+     const u = 1; // Average price
+     const sigma = 0.2 * u; // Volatility (standard deviation)
+     const dt = 0.001; // Time interval
+
+     const marketPrice = calculateBlackScholesPrice(initialPrice, u, sigma, dt).toFixed(2)
+     console.log('Market Price = $' + marketPrice)
+
+     const epsilonPrice = parseFloat(marketPrice)/10000 // 0.01 %
+     const params = {
+        marketPrice,
+        epsilonPrice
      }
-     this.step+=1
+     //
+     for(let i =0; i<this.agents!.length; i++){
+        await this.agents![i].takeStep(params)
+     }
      await this.printer!.printCsv(this.step, this.trackedResults)
+     this.step+=1
    }
 
    // methods gave to the agents

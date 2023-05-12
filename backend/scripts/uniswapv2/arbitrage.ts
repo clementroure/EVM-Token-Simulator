@@ -18,7 +18,8 @@ export default async function main() {
   const UniswapV2Factory = new ethers.Contract(uniswapV2Factory_address, uniswapV2FactoryABI, provider)
 
   const pairAddress = await UniswapV2Factory.getPair(WETH_address_fake, USDT_address_fake)
-  console.log(pairAddress)
+  // console.log(pairAddress)
+
   // WETH/USDT goerli -> 0x9cF9dA905a4A65312150Dea6B87242C54A37CE00
   const pairContract = new ethers.Contract(pairAddress, uniswapV2PairABI, provider)
   const reserves = await pairContract.getReserves()
@@ -26,8 +27,8 @@ export default async function main() {
   const tokenA_amount = reserves[1] / 10**18
   const tokenB_amount = reserves[0] / 10**6
   const price = Math.max(tokenA_amount, tokenB_amount) / Math.min(tokenA_amount, tokenB_amount)
-  console.log(tokenA_amount, tokenB_amount)
-  console.log('1 WETH = $' + price)
+  // console.log(tokenA_amount, tokenB_amount)
+  // console.log('1 WETH = $' + price)
 
   // Add the address and the abi of the contracts you want to interact with
   const contracts: MyContractFactory[] = [
@@ -40,17 +41,17 @@ export default async function main() {
   // define quantity of tokens needed my each agent
   // WARNING: names have to be the same as your contarcts
   let tokens: Token[] = [
-    {name: 'tokenA', decimals: 18, amount: 1},
-    {name: 'tokenB', decimals: 6, amount: 1800}
+    {name: 'tokenA', decimals: 18, amount: 10},
+    {name: 'tokenB', decimals: 6, amount: 18000}
   ]
   // agent types and number of each type that will be used within the simulation
   let agents: MyAgent[] = [
-    {'type': AgentSwap, nb: 1},
+    {'type': AgentSwap, nb: 20},
     // {'type': AgentLiquidity, nb: 1}
   ]
   // simulation parameters
   const params = {
-    simulationDuration: 10,
+    simulationDuration: 100,
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,

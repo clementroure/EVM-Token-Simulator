@@ -12,8 +12,8 @@ export default class Printer{
             path: 'outdir_data/data.csv',
             header: [
             {id: 'tick', title: 'tick'},
-            {id: 'amountA', title: 'amountA'},
-            {id: 'amountB', title: 'amountB'}
+            {id: 'market', title: 'market'},
+            {id: 'pool', title: 'pool'}
             ]
         });
 
@@ -38,7 +38,7 @@ export default class Printer{
 
     async printCsv(step: number, values: number[]){
 
-        await this.csvWriter!.writeRecords([{tick: step, amountA: values[0]/10**18, amountB: values[1]/10**18}]).catch((e) => {
+        await this.csvWriter!.writeRecords([{tick: step, market: values[0], pool: values[1]}]).catch((e) => {
             console.log(e);
         })
     }

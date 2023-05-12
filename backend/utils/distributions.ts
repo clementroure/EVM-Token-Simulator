@@ -72,12 +72,5 @@ function calculateBlackScholesPrice(P_t:number, u:number, sigma:number, dt:numbe
   return P_t_plus_1;
 }
 
-// const initialPrice = 100; // Assuming initial price P_t = 100
-// const u = 1.2; // Average price
-// const sigma = 0.4 * u; // Volatility (standard deviation)
-// const dt = 0.1; // Time interval
 
-// const newPrice = calculateBlackScholesPrice(initialPrice, u, sigma, dt);
-
-
-export {normal_distribution, poisson_distribution, binomial_distribution}
+export {normal_distribution, poisson_distribution, binomial_distribution, calculateBlackScholesPrice}

@@ -34,7 +34,7 @@ export const options = {
 	plugins: {
 	  title: {
 		display: true,
-		text: 'Liquidity Pool',
+		text: 'Live Arbitrage',
 	  },
 	  tooltip: {
         callbacks: {
@@ -109,7 +109,7 @@ export default function Index () {
 						labels,
 						datasets: [
 							{
-							label: 'Amount A',
+							label: 'Market Price (WETH)',
 							data: reducedMatrix,
 							borderColor: 'rgb(255, 99, 132)',
 							backgroundColor: 'rgba(255, 99, 132, 0.5)',
@@ -117,12 +117,13 @@ export default function Index () {
 							yAxisID: 'y',
 							},
 							{
-							label: 'Amount B',
+							label: 'Pool Price (WETH)',
 							data: reducedMatrix2,
 							borderColor: 'rgb(0, 0, 255)',
 							backgroundColor: 'rgba(0, 0, 255, 0.5)',
 							// @ts-ignore
-							yAxisID: 'y1',
+							yAxisID: 'y',
+							//yAxisID: 'y1',
 							},
 						],
 					}

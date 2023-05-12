@@ -30,7 +30,7 @@ abstract class AgentBase {
     
     abstract init(): Promise<void>
 
-    abstract takeStep(): Promise<void>
+    abstract takeStep(action?: any): Promise<void>
 }
 
 export default AgentBase
