@@ -25,7 +25,14 @@ const config: HardhatUserConfig = {
         url: process.env.ALCHEMY_URL as string,
       }
     },
-  }
+    testnet: {
+      url:  process.env.ALCHEMY_URL as string,
+      accounts: [process.env.PRIVATE_KEY as string],
+    }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
 };
 
 export default config;

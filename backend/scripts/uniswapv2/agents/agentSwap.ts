@@ -30,16 +30,6 @@ class AgentSwap extends AgentBase {
       await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
     }
 
-    async getBalance(to: string) {
-
-        const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
-        const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
-        // console.log('UNI: ' + tokenA_balance / 10**18)
-        // console.log('WETH: ' + tokenB_balance / 10**18)
-  
-        return [tokenA_balance, tokenB_balance]
-    }
-  
     async takeStep() {
       if(this.id < this.distributions!['poisson'][this.getStep()])
       await this.swapExactTokensForTokens()
@@ -47,7 +37,7 @@ class AgentSwap extends AgentBase {
 
     async swapExactTokensForTokens() {
 
-      let amountIn: number;
+      let amountIn;
       let path: string[];
       //The minimum amount of output tokens that must be received for the transaction not to revert.
       const amountOutMin = 1
@@ -56,45 +46,44 @@ class AgentSwap extends AgentBase {
       // deadline
       const deadline = Math.floor(Date.now() / 1000) + (60*10)
       // ratio tokenA/tokenB
-      let balances = await this.getBalance( this.contracts!['lpToken'].address)
-      const tokenA_balance = balances[0]
-      const tokenB_balance = balances[1]
+      let balances = await this.contracts!['pair'].getReserves()
+      const tokenA_balance = balances[1]
+      const tokenB_balance = balances[0]
 
-      const _max = Math.max(tokenA_balance, tokenB_balance)
-      const _min = _max == tokenA_balance ? tokenB_balance : tokenA_balance
+      console.log()
+      console.log(tokenA_balance / 10**18)
+      console.log(tokenB_balance / 10**6)
 
-      const ratio = _max / _min
-      // constant value
-      const c = 0.00000001*10**18
+      console.log()
+      console.log('WETH : ' + await this.contracts!['tokenA'].callStatic.balanceOf(to)/ 10**18)
+      console.log('USDT : ' + await this.contracts!['tokenB'].callStatic.balanceOf(to)/ 10**6)
+
       // swap direction
       if(this.distributions!['binomial'][this.getStep()] == 1){
-        if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
-        else
-        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
+        // constant value
+        const c = 0.01
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toString(), 18)
 
         path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
       }
       else{
-        if(tokenA_balance > tokenB_balance)
-        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()])
-        else
-        amountIn = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
+        // constant value
+        const c = 18
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toFixed(6).toString(), 6)
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
       }
 
-      await this.getBalance( this.wallet.address)
-
       await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
-      balances = await this.getBalance(this.contracts!['lpToken'].address)
+      balances = await this.contracts!['pair'].getReserves()
 
-      const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
+      const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[1]/10**18 + ' amountB: ' + balances[0]/10**6 + '\n'
       this.printer!.printTxt(txt)
 
       this.setTrackedResults(this.name, balances)
     }
-}
+
+  }
 
 export default AgentSwap

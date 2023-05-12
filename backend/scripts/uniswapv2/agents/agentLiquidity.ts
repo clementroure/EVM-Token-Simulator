@@ -25,7 +25,7 @@ class AgentLiquidity extends AgentBase{
     }
 
     async init(){
-
+      
       await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
       await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
       await this.contracts!['lpToken'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))

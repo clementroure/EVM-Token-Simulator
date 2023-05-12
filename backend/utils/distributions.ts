@@ -49,4 +49,35 @@ function binomial_distribution(n: number, p: number, size: number): number[] {
   return result;
 }
 
+
+function calculateBlackScholesPrice(P_t:number, u:number, sigma:number, dt:number) {
+  // Generate a random number from a normal distribution
+  function generateRandomNumber() {
+    let u = 0;
+    let v = 0;
+    while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  // Calculate epsilon
+  const epsilon = generateRandomNumber();
+
+  // Calculate the term u * dt + sigma * epsilon * sqrt(dt)
+  const term = u * dt + sigma * epsilon * Math.sqrt(dt);
+
+  // Calculate the new price P_{t+1}
+  const P_t_plus_1 = P_t + P_t * term;
+
+  return P_t_plus_1;
+}
+
+// const initialPrice = 100; // Assuming initial price P_t = 100
+// const u = 1.2; // Average price
+// const sigma = 0.4 * u; // Volatility (standard deviation)
+// const dt = 0.1; // Time interval
+
+// const newPrice = calculateBlackScholesPrice(initialPrice, u, sigma, dt);
+
+
 export {normal_distribution, poisson_distribution, binomial_distribution}
