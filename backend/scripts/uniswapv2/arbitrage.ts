@@ -46,12 +46,12 @@ export default async function main() {
   ]
   // agent types and number of each type that will be used within the simulation
   let agents: MyAgent[] = [
-    {'type': AgentSwap, nb: 20},
-    // {'type': AgentLiquidity, nb: 1}
+    {'type': AgentSwap, nb: 1},
+    {'type': AgentLiquidity, nb: 1}
   ]
   // simulation parameters
   const params = {
-    simulationDuration: 100,
+    simulationDuration: 10,
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,

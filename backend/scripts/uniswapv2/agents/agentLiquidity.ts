@@ -1,8 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat"; 
 import AgentBase from "../../../engine/agentBase";
 import Printer from "../../../engine/printer";
+import { text } from "stream/consumers";
 
 class AgentLiquidity extends AgentBase{
  
@@ -28,53 +29,43 @@ class AgentLiquidity extends AgentBase{
       
       await this.contracts!['tokenA'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
       await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
-      await this.contracts!['lpToken'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
-    }
+      await this.contracts!['pair'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
 
-    async getBalance(to: string) {
-
-      const tokenA_balance = await this.contracts!['tokenA'].callStatic.balanceOf(to)
-      const tokenB_balance = await this.contracts!['tokenB'].callStatic.balanceOf(to)
-      // console.log('UNI: ' + tokenA_balance / 10**18)
-      // console.log('WETH: ' + tokenB_balance / 10**18)
-
-      return [tokenA_balance, tokenB_balance]
+      await this.addLiquidity()
     }
   
     async takeStep() {
-      if(this.distributions!['binomial'][this.getStep()] == 1)
-      await this.addLiquidity()
-      else if(await this.contracts!['lpToken'].callStatic.balanceOf(this.wallet.address) > 0)
-      await this.removeLiquidity()
+      // if(this.distributions!['binomial'][this.getStep()] == 1)
+      // await this.addLiquidity()
+      // else if(await this.contracts!['pair'].callStatic.balanceOf(this.wallet.address) > 0)
+      // await this.removeLiquidity()
+
+      let balances = await this.contracts!['pair'].getReserves()
+      const tokenA_balance = balances[1] / 10**18
+      const tokenB_balance = balances[0] / 10**6
+      const ratio = Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)
+
+      // console.log('ratio : ' + ratio)
+      const loss = this.calculateImpermanentLoss(1800, ratio).toFixed(8)
+      console.log('Loss : ' + loss + ' %')
+
+      const txt =  (this.getStep()) + ': Impermanent Loss : ' + loss + ' %' + '\n'
+      this.printer!.printTxt(txt)
+      // this.setTrackedResults(this.name, balances)
     }
 
     async addLiquidity() {
-
-        let balances = await this.getBalance(this.contracts!['lpToken'].address)
-        const tokenA_balance = balances[0]
-        const tokenB_balance = balances[1]
   
-        const _max = Math.max(tokenA_balance, tokenB_balance)
-        const _min = _max == tokenA_balance ? tokenB_balance : tokenA_balance
-  
-        const ratio = _max / _min
-
-        const c = 0.0000001*10**18
-
-        const amountADesired = Math.round(c * this.distributions!['normal'][this.getStep()] * ratio)
-        const amountBDesired = Math.round(c * this.distributions!['normal'][this.getStep()])
+        const amountADesired = ethers.utils.parseUnits('1', 18); // add 1 WETH
+        const amountBDesired = ethers.utils.parseUnits('1800', 6); // add 1800 USDT
 
         const amountAMin = 1
         const amountBMin = 1
 
         const to = this.wallet.address;
-        const deadline = Math.floor(Date.now() / 1000) + (60*10)
+        const deadline = Math.floor(Date.now() / 1000) + (60*10) // 10 min from UNISX time
 
         await this.contracts!['uniswapV2Router'].addLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
-
-        balances = await this.getBalance(this.contracts!['lpToken'].address)
-
-        this.setTrackedResults(this.name, balances)
     }
 
     async removeLiquidity() {
@@ -85,16 +76,27 @@ class AgentLiquidity extends AgentBase{
         const to = this.wallet.address;
         const deadline =  Math.floor(Date.now() / 1000) + (60*10)
 
-        const liquidity = await this.contracts!['lpToken'].callStatic.balanceOf(to)
+        const liquidity = await this.contracts!['pair'].callStatic.balanceOf(to)
 
         await this.contracts!['uniswapV2Router'].removeLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, liquidity, amountAMin, amountBMin, to, deadline)
 
-        const balances = await this.getBalance(this.contracts!['lpToken'].address)
+        // const balances = await this.getBalance(this.contracts!['pair'].address)
 
-        const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
-        this.printer!.printTxt(txt)
+        // const txt =  (this.getStep()+1) + ': ' + this.name + ' -> amountA: ' +  balances[0]/10**18 + ' amountB: ' + balances[1]/10**18 + '\n'
+        // this.printer!.printTxt(txt)
 
-        this.setTrackedResults(this.name, balances)
+        // this.setTrackedResults(this.name, balances)
+    }
+
+
+    calculateImpermanentLoss(initialRatio: number, currentRatio: number): number {
+      // Price ratio
+      let priceRatio = currentRatio / initialRatio;
+  
+      // Impermanent loss formula
+      let IL = 1 - (2 * Math.sqrt(priceRatio)) / (1 + priceRatio);  
+      // Returns impermanent loss as a percentage
+      return IL * 100;
     }
 }
 
