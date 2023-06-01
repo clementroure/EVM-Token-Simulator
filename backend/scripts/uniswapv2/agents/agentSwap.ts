@@ -128,8 +128,7 @@ class AgentSwap extends AgentBase {
         this.printer!.printTxt(txt)
   
         this.setTrackedResults(this.name, [params.marketPrice, poolPrice])
-      }
-      else{
+      } else {
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)
 
