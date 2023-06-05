@@ -3,6 +3,7 @@ import { BigNumber, Contract } from "ethers";
 import AgentBase from '../../../engine/agentBase'
 import Printer from "../../../engine/printer";
 import { ethers } from "hardhat";
+import Decimal from "decimal.js";
 
 class AgentSwap extends AgentBase {
 
@@ -72,8 +73,15 @@ class AgentSwap extends AgentBase {
         // constant value
         const c = 0.1
         amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toString(), 18)
+        console.log(ethers.utils.formatUnits(amountIn,18) + '  amountIn')
 
         path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
+
+        // SLIPPAGE
+        const reserveIn = ethers.utils.parseUnits(balances[1].toString(), 0)
+        const reserveOut = ethers.utils.parseUnits(balances[0].toString(), 0)
+        const amountOut = getAmountOut(amountIn, reserveIn, reserveOut)
+        console.log((amountOut/10**6).toFixed(6).toString() + ' USDT - amountOut')
 
         await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
@@ -90,36 +98,28 @@ class AgentSwap extends AgentBase {
         // constant value
         const c = 180
         amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toFixed(6).toString(), 6)
+        console.log(ethers.utils.formatUnits(amountIn,6) + '  amountIn')
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
 
         // SLIPPAGE
-        const reserveIn = ethers.utils.parseUnits(balances[1].toString(), 0)
-        const reserveOut = ethers.utils.parseUnits(balances[0].toString(), 0)
+        const reserveIn = ethers.utils.parseUnits(balances[0].toString(), 0)
+        const reserveOut = ethers.utils.parseUnits(balances[1].toString(), 0)
+        const tokenA_amount_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
 
-        const amountOut = (getAmountOut(amountIn, reserveIn, reserveOut)).toFixed(6)
-
-        // console.log(amountIn, reserveIn, reserveOut)
-        const tokenA_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
-        // console.log('WETH before:' + tokenA_before)
-        // console.log(`Amount out: ${ethers.utils.parseUnits(amountOut, 18)}`);
-        // console.log('WETH expected:' + (tokenA_before.add(ethers.utils.parseUnits(amountOut, 18))))
-
+        // expectedOutputAmount = (inputAmount * reserveOut) / (reserveIn + inputAmount)
+        const expectedAmount = (amountIn.mul(reserveOut)).div(reserveIn.add(amountIn))
+        console.log(expectedAmount +  ' expecetd amount')
+        
+        // swap
         await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
 
-        // slippage
-        const expectedFinalAmount = tokenA_before.add(ethers.utils.parseUnits(amountOut, 18))
-        const finalAmount = await this.contracts!['tokenA'].callStatic.balanceOf(to)
-        // console.log(expectedFinalAmount, finalAmount)
-
-        const difference = expectedFinalAmount.sub(finalAmount)
-        // console.log(difference)
-
-        const slipppage = ((difference / expectedFinalAmount) * 100).toFixed(3)
-
-        // console.log('WETH I have:' + (await this.contracts!['tokenA'].callStatic.balanceOf(to)) + ' %')
-
-        console.log('Slippage : ' + slipppage + ' %')
+        // slippage = (receivedAmount - expectedOutputAmount) / expectedOutputAmount
+        const tokenA_amount_after = await this.contracts!['tokenA'].callStatic.balanceOf(to)
+        const receivedAmount = tokenA_amount_after.sub(tokenA_amount_before)
+        console.log(receivedAmount + ' received amount')
+        const slippage = new Decimal(receivedAmount.toString()).minus(expectedAmount.toString()).dividedBy(expectedAmount.toString());
+        console.log(slippage + ' slippage')
 
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)

@@ -1,5 +1,3 @@
-import { ethers } from "hardhat";
-
 /**
  * Calculate slippage percentage.
  * @param inputAmount - The amount of tokens being provided.
@@ -8,7 +6,7 @@ import { ethers } from "hardhat";
  * @param outputReserve - The liquidity reserve for the token being received.
  */
 
-function calculateSlippage(inputAmount: any, outputAmount: any, inputReserve: any, outputReserve: any): string {
+export function calculateSlippage(inputAmount: any, outputAmount: any, inputReserve: any, outputReserve: any): string {
 
     console.log(inputAmount, outputAmount, inputReserve, outputReserve)
 
@@ -21,5 +19,3 @@ function calculateSlippage(inputAmount: any, outputAmount: any, inputReserve: an
     
     return slippage;  // returns the slippage in percentage with 2 decimal places
   }
-
-  export {calculateSlippage}

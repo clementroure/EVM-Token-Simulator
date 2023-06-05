@@ -3,7 +3,6 @@ import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat"; 
 import AgentBase from "../../../engine/agentBase";
 import Printer from "../../../engine/printer";
-import { text } from "stream/consumers";
 
 class AgentLiquidity extends AgentBase{
  

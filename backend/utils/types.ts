@@ -1,28 +1,25 @@
 import { Contract } from "ethers"
-import AgentBase from "../engine/agentBase"
 
-type MyContract = {
+export type MyContract = {
     name: string,
     contract: Contract
 }
-type MyContractFactory = {
+export type MyContractFactory = {
     name: string,
     address: string,
     abi: any
 }
-type MyDistribution = {
+export type MyDistribution = {
     name: string,
     distribution: number[]
 }
-type MyAgent = {
+export type MyAgent = {
     type: any,
     nb: number
 }
 
-type Token = {
+export type Token = {
     name: string,
     decimals: number,
     amount: number
 }
-
-export {MyContract, MyDistribution, MyContractFactory, MyAgent, Token}

@@ -1,5 +1,5 @@
 
-function normal_distribution(min: number, max: number, skew: number) {
+export function normal_distribution(min: number, max: number, skew: number) {
   
     let u = 0, v = 0;
     while(u === 0) u = Math.random() //Converting [0,1) to (0,1)
@@ -18,7 +18,7 @@ function normal_distribution(min: number, max: number, skew: number) {
     return num
 }
 
-function poisson_distribution(lambda: number, size: number): number[] {
+export function poisson_distribution(lambda: number, size: number): number[] {
   const poissonArray: number[] = [];
   for (let i = 0; i < size; i++) {
     let p = Math.exp(-lambda);
@@ -35,7 +35,7 @@ function poisson_distribution(lambda: number, size: number): number[] {
   return poissonArray;
 }
 
-function binomial_distribution(n: number, p: number, size: number): number[] {
+export function binomial_distribution(n: number, p: number, size: number): number[] {
   const result = [];
   for (let i = 0; i < size; i++) {
     let successes = 0;
@@ -50,7 +50,7 @@ function binomial_distribution(n: number, p: number, size: number): number[] {
 }
 
 
-function calculateBlackScholesPrice(P_t:number, u:number, sigma:number, dt:number) {
+export function calculateBlackScholesPrice(P_t:number, u:number, sigma:number, dt:number) {
   // Generate a random number from a normal distribution
   function generateRandomNumber() {
     let u = 0;
@@ -71,6 +71,3 @@ function calculateBlackScholesPrice(P_t:number, u:number, sigma:number, dt:numbe
 
   return P_t_plus_1;
 }
-
-
-export {normal_distribution, poisson_distribution, binomial_distribution, calculateBlackScholesPrice}

@@ -1,21 +1,19 @@
-import AAVEpoolABI from '../../abi/AAVEpool.json'
-import erc20ABI from '../../abi/ERC20.json'
-import {daiAddress, usdcAddress, AAVEpool_address} from '../../utils/address'
 import Simulator from "../../engine/simulator";
 import {MyAgent, MyContractFactory, Token } from "../../utils/types"
-import AgentLender from "./agents/lenderAgent";
 import AgentBorrower from "./agents/borrowerAgent";
-import { ethers } from 'hardhat';
+import * as abi from '../../constants/abi'
+import * as address from '../../constants/address'
 
 export default async function main() {
 
   const contracts: MyContractFactory[] = [
-    {name: 'AAVEpool', address: AAVEpool_address, abi: AAVEpoolABI},
-    {name: 'tokenA', address: daiAddress, abi: erc20ABI},
-    {name: 'tokenB', address: usdcAddress, abi: erc20ABI},
-    {name: 'atoken', address: '0x67550Df3290415611F6C140c81Cd770Ff1742cb9', abi: erc20ABI},
-    {name: 'stableDebtToken', address: '0x988Ccf511EB27EcE918133Ae5c0C43A953fc0cd2', abi: erc20ABI},
-    {name: 'variableDebtToken', address: '0x1badcb245082a0E90c41770d47C7B58CBA59af74', abi: erc20ABI},
+    {name: 'AAVEpool', address: address.AAVE_POOL, abi: abi.AAVE_POOL},
+    {name: 'AAVEOracle', address: address.AAVE_ORACLE, abi: abi.AAVE_ORACLE},
+    {name: 'tokenA', address: address.DAI_AAVE, abi: abi.ERC20},
+    {name: 'tokenB', address: address.USDC_AAVE, abi: abi.ERC20},
+    {name: 'atoken', address: address.ATOKEN_AAVE, abi: abi.ERC20},
+    {name: 'stableDebtToken', address: address.STABLE_DEBT_TOKEN_AAVE, abi: abi.ERC20},
+    {name: 'variableDebtToken', address: address.VARIABLE_DEBT_TOKEN_AAVE, abi: abi.ERC20},
   ]
   // define quantity of tokens needed my each agent
   // WARNING: names have to be the same as your contarcts

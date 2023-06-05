@@ -3,7 +3,6 @@ import { Contract } from "ethers";
 import AgentBase from '../../../engine/agentBase'
 import Printer from "../../../engine/printer";
 import { ethers } from "hardhat";
-import erc20ABI from '../../../abi/ERC20.json'
 
 class AgentLender extends AgentBase {
 

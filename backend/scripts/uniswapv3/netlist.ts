@@ -1,32 +1,28 @@
 import { ethers } from "hardhat"
-import uniswapV3NonFungiblePositionManagerABI from '../../abi/uniswapV3NonFungiblePositionManager.json'
-import uniswapV3FactoryABI from '../../abi/uniswapV3Factory.json'
-import uniswapV3SwapRouterABI from '../../abi/uniswapV3SwapRouter.json'
-import uniswapV3PoolABI from '../../abi/uniswapV3Pool.json'
-import erc20ABI from '../../abi/ERC20.json'
-import { UNI_address, WETH_address, uniswapV3NonFungiblePositionManager_address, uniswapV3Factory_address, uniswapV3SwapRouter_address} from '../../utils/address'
 import Simulator from "../../engine/simulator";
 import { MyAgent, MyContractFactory, Token } from "../../utils/types"
 import AgentSwap from "./agents/agentSwap"
 import AgentLiquidity from "./agents/agentLiquidity"
+import * as abi from '../../constants/abi'
+import * as address from '../../constants/address'
 const { JsonRpcProvider } = ethers.providers
 
 export default async function main() {
 
   const provider = new JsonRpcProvider(process.env.ALCHEMY_URL as string)
   // const provider = new JsonRpcProvider('http://127.0.0.1:8545/') // server backend - npx hardhat node (other terminal)
-  const UniswapV3Factory= new ethers.Contract(uniswapV3Factory_address, uniswapV3FactoryABI, provider);
+  const UniswapV3Factory= new ethers.Contract(address.UNISWAP_V3_FACTORY, abi.UNISWAP_V3_FACTORY, provider);
   // verify if pool exist
-  const pairPoolAddress = await UniswapV3Factory.callStatic.getPool(UNI_address, WETH_address, 3000)
+  const pairPoolAddress = await UniswapV3Factory.callStatic.getPool(address.UNI_GOERLI, address.WETH_GOERLI, 3000)
 
   // Add the address and the abi of the contracts you want to interact with
   const contracts: MyContractFactory[] = [
-    {name: 'uniswapV3SwapRouter', address: uniswapV3SwapRouter_address, abi: uniswapV3SwapRouterABI},
-    {name: 'uniswapV3Factory', address: uniswapV3Factory_address, abi: uniswapV3FactoryABI},
-    {name: 'uniswapV3Pool', address: pairPoolAddress, abi: uniswapV3PoolABI},
-    {name: 'uniswapV3NonFungiblePositionManager', address: uniswapV3NonFungiblePositionManager_address, abi: uniswapV3NonFungiblePositionManagerABI},
-    {name: 'tokenA', address: UNI_address, abi: erc20ABI},
-    {name: 'tokenB', address: WETH_address, abi: erc20ABI},
+    {name: 'uniswapV3SwapRouter', address: address.UNISWAP_V3_SWAP_ROUTER, abi: abi.UNISWAP_V3_SWAP_ROUTER},
+    {name: 'uniswapV3Factory', address: address.UNISWAP_V3_FACTORY, abi: abi.UNISWAP_V3_FACTORY},
+    {name: 'uniswapV3Pool', address: pairPoolAddress, abi: abi.UNISWAP_V3_POOL},
+    {name: 'uniswapV3NonFungiblePositionManager', address: address.UNISWAP_V3_NON_FUNGIBLE_TOKEN_POSITION, abi: abi.UNISWAP_V3_NON_FUNGIBLE_TOKEN_POSITION},
+    {name: 'tokenA', address: address.UNI_GOERLI, abi: abi.ERC20},
+    {name: 'tokenB', address: address.WETH_GOERLI, abi: abi.ERC20},
   ]
   // define quantity of tokens needed my each agent
   // WARNING: names have to be the same as your contarcts

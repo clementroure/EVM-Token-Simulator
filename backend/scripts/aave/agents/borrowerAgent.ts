@@ -29,33 +29,36 @@ class AgentBorrower extends AgentBase {
       // approve USDC
       await this.contracts!['tokenB'].approve(this.contracts!['AAVEpool'].address, ethers.utils.parseUnits('10000', 18))
 
-      // await this.printKeyMetrics()
+      await this.printKeyMetrics()
       
-      // await this.deposit()
+      await this.deposit()
       
-      // await this.printKeyMetrics()
+      await this.printKeyMetrics()
       
-      // await this.borrow()
-      // await this.printKeyMetrics()
+      await this.borrow()
+      await this.printKeyMetrics()
 
-      // await this.repay()
-      // await this.printKeyMetrics()
+      await this.repay()
+      await this.printKeyMetrics()
 
-      // await this.withdraw()
-      // await this.printKeyMetrics()
+      await this.withdraw()
+      await this.printKeyMetrics()
+
+      const priceDAI = await this.contracts!['AAVEOracle'].getAssetPrice('0x5bB220Afc6E2e008CB2302a83536A019ED245AA2')
+      console.log('Oracle price : $' + priceDAI/10**8)
     }
 
     async takeStep() {
 
-      if(this.id < this.distributions!['poisson'][this.getStep()]){
-        if(this.distributions!['binomial'][this.getStep()] == 1)
-        await this.deposit()
-        else
-        await this.borrow()
+      // if(this.id < this.distributions!['poisson'][this.getStep()]){
+      //   if(this.distributions!['binomial'][this.getStep()] == 1)
+      //   await this.deposit()
+      //   else
+      //   await this.borrow()
           
-        // print key metrics
-        await this.printKeyMetrics()
-      }
+      //   // print key metrics
+      //   await this.printKeyMetrics()
+      // }
     }
 
     async deposit() {
@@ -142,6 +145,9 @@ class AgentBorrower extends AgentBase {
   // health factor = sum(atoken * liquidation treshold) / sum(stable debt + variable debt)
 
   // when hf < 1, loan is undercollateralised and may be liquidated
+
+  // Oracle prix AAVE
+  // Black scholes to modify oracle prices
 }
 
 export default AgentBorrower
