@@ -51,7 +51,6 @@ export default class Simulator{
     await this.generateContracts(contracts)
     await this.generateAgents(agents)
     await this.fundAgents()
-    await this.start()
    }
 
    async generateDistributions(normalDistribution: boolean, poissonDistribution: boolean, binomialDistribution: boolean){
@@ -148,26 +147,26 @@ export default class Simulator{
         checkSlippage: false
      }
 
-     await block.setAutomine(false)
+    //  await block.setAutomine(false) // uniswap v2 slippage
 
      //
      for(let i =0; i<this.agents!.length; i++){
         await this.agents![i].takeStep(params)
      }
 
-    await block.advance()
-    await block.setAutomine(true)
+    // await block.advance()
+    // await block.setAutomine(true)
 
-    params = {
-        marketPrice: marketPrice,
-        epsilonPrice: epsilonPrice,
-        checkSlippage: true
-     }
+    // params = {
+    //     marketPrice: marketPrice,
+    //     epsilonPrice: epsilonPrice,
+    //     checkSlippage: true
+    //  }
 
-     // only swap agents
-     for(let i =1; i<this.agents!.length; i++){ 
-        await this.agents![i].takeStep(params)
-     }
+    //  // only swap agents // uniswap v2 slippage
+    //  for(let i =1; i<this.agents!.length; i++){ 
+    //     await this.agents![i].takeStep(params)
+    //  }
 
      await this.printer!.printCsv(this.step, this.trackedResults)
      this.step+=1
@@ -181,4 +180,6 @@ export default class Simulator{
    setTrackedResults = (name: string,values: number[]):void => {
       this.trackedResults = values
    }
+
+   
 }

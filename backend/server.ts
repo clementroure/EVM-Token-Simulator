@@ -1,33 +1,30 @@
 // REST API - Called by the frontend to generate the simulation
 import express from "express";
+import cors from 'cors'
 import * as dotenv from "dotenv";
 import main from './scripts/uniswapv2/netlist'
-import { execSync, spawn } from "child_process";
-import path from 'path';
 dotenv.config();
 const app = express();
 
+// Middleware for parsing JSON
+app.use(express.json())
 // CORS Policy
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Access-Control-Allow-Credentials', '*');
-  next();
-});
-
-/// GET
-app.get('/',(req,res) => {
- 
-  // res.json({"foo": "bar"});
-  res.send('EVM agent-based token simulator - REST API')
-});
-
-app.get('/uniswapv2', (req, res) => {
-  main()
-});
+app.use(cors())
 
 
-app.listen(4000, () => {
-  console.log("App is listening to port 4000")
-});
+app.get('/aave', async (req, res) => {
+  try {
+    await main()
+    res.status(200).send("Main function executed successfully")
+  } catch (err) {
+    console.error(err)
+    res.status(500).send("There was an error executing the main function")
+  }
+})
+
+
+const port = process.env.PORT || 8080
+
+app.listen(port, () => {
+  console.log(`App is listening to port ${port}`)
+})

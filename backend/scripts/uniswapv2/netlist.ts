@@ -61,8 +61,9 @@ export default async function main() {
     tokens: tokens
   }
   // Start the simulation using params
-  new Simulator(params)
+  const _simulator = new Simulator(params)
+  await _simulator.start()
 }
 
-main()
-    .catch((error) => console.error("Error simulating scenario: ", error))
+// main()
+//     .catch((error) => console.error("Error simulating scenario: ", error))
