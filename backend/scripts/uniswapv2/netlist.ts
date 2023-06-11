@@ -6,8 +6,12 @@ import AgentLiquidity from "./agents/agentLiquidity"
 import * as abi from '../../constants/abi'
 import * as address from '../../constants/address'
 const { JsonRpcProvider } = ethers.providers
+const { testUtils } = require('hardhat')
+const { block } = testUtils
 
 export default async function main() {
+
+  // await block.setAutomine(false)
 
   const provider = new JsonRpcProvider(process.env.ALCHEMY_URL as string)
 

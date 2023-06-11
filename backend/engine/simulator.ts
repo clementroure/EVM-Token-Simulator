@@ -9,7 +9,8 @@ import Stopwatch from 'statman-stopwatch';
 import Printer from "./printer";
 import AgentBase from "./agentBase";
 import { MyAgent, MyContractFactory, Token } from "../utils/types";
-import { boolean } from "hardhat/internal/core/params/argumentTypes";
+const { testUtils } = require('hardhat')
+const { block } = testUtils
 dotenv.config();
 
 export default class Simulator{
@@ -129,6 +130,7 @@ export default class Simulator{
    }
 
    async takeStep(){
+
      console.log('step: ' + this.step)
      // MARKET PRICE
      const initialPrice = 1800; // Assuming initial price P_t = 1800
@@ -140,14 +142,33 @@ export default class Simulator{
      console.log('Market Price = $' + marketPrice)
 
      const epsilonPrice = parseFloat(marketPrice)/10000 // 0.01 %
-     const params = {
-        marketPrice,
-        epsilonPrice
+     let params = {
+        marketPrice: marketPrice,
+        epsilonPrice: epsilonPrice,
+        checkSlippage: false
      }
+
+     await block.setAutomine(false)
+
      //
      for(let i =0; i<this.agents!.length; i++){
         await this.agents![i].takeStep(params)
      }
+
+    await block.advance()
+    await block.setAutomine(true)
+
+    params = {
+        marketPrice: marketPrice,
+        epsilonPrice: epsilonPrice,
+        checkSlippage: true
+     }
+
+     // only swap agents
+     for(let i =1; i<this.agents!.length; i++){ 
+        await this.agents![i].takeStep(params)
+     }
+
      await this.printer!.printCsv(this.step, this.trackedResults)
      this.step+=1
    }

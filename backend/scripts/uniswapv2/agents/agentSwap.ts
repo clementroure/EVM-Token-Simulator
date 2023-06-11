@@ -3,9 +3,14 @@ import { BigNumber, Contract } from "ethers";
 import AgentBase from '../../../engine/agentBase'
 import Printer from "../../../engine/printer";
 import { ethers } from "hardhat";
-import Decimal from "decimal.js";
+const { testUtils } = require('hardhat')
+const { block } = testUtils
 
 class AgentSwap extends AgentBase {
+
+    token_before: BigNumber = BigNumber.from(0)
+    expectedAmountOut: BigNumber = BigNumber.from(0)
+    decimals:number = 18
 
     constructor(
       name: string, wallet: SignerWithAddress, printer: Printer,
@@ -21,7 +26,6 @@ class AgentSwap extends AgentBase {
         distributions,
         contracts
       )
-
       this.init()
     }
 
@@ -31,9 +35,44 @@ class AgentSwap extends AgentBase {
       await this.contracts!['tokenB'].approve(this.contracts!['uniswapV2Router'].address, ethers.utils.parseUnits('10000', 18))
     }
 
+    async calculateSlippage() {
+
+      // console.log('-- SLIPPAGE --')
+      // console.log('amount BEFORE ' +  parseFloat(this.token_before.toString())/10**this.decimals)
+
+      let token_amount_after: number
+      if(this.decimals == 18)
+      token_amount_after = parseFloat(await this.contracts!['tokenA'].callStatic.balanceOf(this.wallet.address))/10**this.decimals
+      else
+      token_amount_after = parseFloat(await this.contracts!['tokenB'].callStatic.balanceOf(this.wallet.address))/10**this.decimals
+
+      // console.log('amount after : ' + token_amount_after)
+  
+      // slippage = (receivedAmount - expectedOutputAmount) / expectedOutputAmount
+      const receivedAmount = token_amount_after - parseFloat(this.token_before.toString())/10**this.decimals
+      // console.log(receivedAmount + ' received amount')
+
+      // (B - A) / A * 100
+      const B = Math.max(receivedAmount, parseFloat(this.expectedAmountOut.toString())/10**this.decimals )
+      const A = Math.min(receivedAmount, parseFloat(this.expectedAmountOut.toString())/10**this.decimals )
+      const dif = B-A
+
+      console.log('Slippage : ' +((dif/A)*100).toFixed(8) + '% ')
+
+      this.token_before = BigNumber.from(0)
+      this.expectedAmountOut = BigNumber.from(0)
+    }
+
+
     async takeStep(params?: any) {
-      if(this.id < this.distributions!['poisson'][this.getStep()])
-      await this.swapExactTokensForTokens(params)
+      if(!params.checkSlippage){
+        if(this.id < this.distributions!['poisson'][this.getStep()])
+        await this.swapExactTokensForTokens(params)
+      }
+      else{
+        if(!this.token_before.eq(0))
+        this.calculateSlippage()
+      }
     }
 
     async swapExactTokensForTokens(params?: any) {
@@ -51,15 +90,8 @@ class AgentSwap extends AgentBase {
       const tokenA_balance = balances[1] / 10**18
       const tokenB_balance = balances[0] / 10**6
 
-      // console.log()
-      // console.log(tokenA_balance / 10**18)
-      // console.log(tokenB_balance / 10**6)
       const poolPrice = Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)
-      // console.log('WETH = $' + poolPrice)
-      // console.log()
-      // console.log('WETH : ' + await this.contracts!['tokenA'].callStatic.balanceOf(to)/ 10**18)
-      // console.log('USDT : ' + await this.contracts!['tokenB'].callStatic.balanceOf(to)/ 10**6)
- 
+
       let agentAction = 0
       if(parseFloat(params.marketPrice) - poolPrice > params.epsilonPrice){
          agentAction = 1
@@ -67,23 +99,34 @@ class AgentSwap extends AgentBase {
       else if(parseFloat(params.marketPrice) - poolPrice < -params.epsilonPrice){
          agentAction = 2
       }
-
       // sell weth
       if(agentAction == 2){
-        // constant value
         const c = 0.1
+        console.log('SELL WETH')
         amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toString(), 18)
-        console.log(ethers.utils.formatUnits(amountIn,18) + '  amountIn')
+        // console.log(ethers.utils.formatUnits(amountIn,18) + '  amountIn')
 
         path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
 
-        // SLIPPAGE
         const reserveIn = ethers.utils.parseUnits(balances[1].toString(), 0)
         const reserveOut = ethers.utils.parseUnits(balances[0].toString(), 0)
-        const amountOut = getAmountOut(amountIn, reserveIn, reserveOut)
-        console.log((amountOut/10**6).toFixed(6).toString() + ' USDT - amountOut')
 
-        await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
+        // expectedOutputAmount = (inputAmount * reserveOut) / (reserveIn + inputAmount)
+        this.expectedAmountOut = await this.contracts!['uniswapV2Router'].getAmountOut(amountIn, reserveIn, reserveOut)
+        // console.log(ethers.utils.formatUnits(this.expectedAmountOut, 18) +  ' expecetd amount')
+
+        // Price Impact
+        const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
+        console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
+
+        this.token_before = await this.contracts!['tokenB'].callStatic.balanceOf(to)
+        this.decimals = 6
+
+        // swap
+        await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)  
+        // await block.advance()
+
+        // print
 
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)
@@ -95,31 +138,32 @@ class AgentSwap extends AgentBase {
       }
       // buy weth
       else if(agentAction == 1){
-        // constant value
+        console.log('BUY WETH')
         const c = 180
         amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toFixed(6).toString(), 6)
-        console.log(ethers.utils.formatUnits(amountIn,6) + '  amountIn')
+        // console.log(ethers.utils.formatUnits(amountIn,6) + '  amountIn')
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
 
-        // SLIPPAGE
         const reserveIn = ethers.utils.parseUnits(balances[0].toString(), 0)
         const reserveOut = ethers.utils.parseUnits(balances[1].toString(), 0)
-        const tokenA_amount_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
 
         // expectedOutputAmount = (inputAmount * reserveOut) / (reserveIn + inputAmount)
-        const expectedAmount = (amountIn.mul(reserveOut)).div(reserveIn.add(amountIn))
-        console.log(expectedAmount +  ' expecetd amount')
+        this.expectedAmountOut = await this.contracts!['uniswapV2Router'].getAmountOut(amountIn, reserveIn, reserveOut)
+        // console.log(ethers.utils.formatUnits(this.expectedAmountOut, 18) +  ' expected amount')
+
+        // Price Impact
+        const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
+        console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
+
+        this.token_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
+        this.decimals = 18
         
         // swap
         await  this.contracts!['uniswapV2Router'].swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
+        // await block.advance()
 
-        // slippage = (receivedAmount - expectedOutputAmount) / expectedOutputAmount
-        const tokenA_amount_after = await this.contracts!['tokenA'].callStatic.balanceOf(to)
-        const receivedAmount = tokenA_amount_after.sub(tokenA_amount_before)
-        console.log(receivedAmount + ' received amount')
-        const slippage = new Decimal(receivedAmount.toString()).minus(expectedAmount.toString()).dividedBy(expectedAmount.toString());
-        console.log(slippage + ' slippage')
+        // print
 
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)
@@ -129,6 +173,7 @@ class AgentSwap extends AgentBase {
   
         this.setTrackedResults(this.name, [params.marketPrice, poolPrice])
       } else {
+        // jsut wait and print
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)
 
@@ -140,17 +185,22 @@ class AgentSwap extends AgentBase {
     }
 
   }
-
-// Estimate the amount of token the agent should receive if 0 slippage
-function getAmountOut(amountIn: BigNumber, reserveIn: BigNumber, reserveOut: BigNumber) {
-  const amountInWithFee = amountIn.mul(997) // 0.3 % fee on each swap
-  const numerator = amountInWithFee.mul(reserveOut)
-  const denominator = reserveIn.mul(1000).add(amountInWithFee)
   
-  const amountOut = Number(numerator) / Number(denominator)
-  
-  return amountOut
-}
+  function calculatePriceImpact(reserveIn: number, reserveOut: number, amountIn: number, amountOut: number): number {
+    // Calculate the ideal output amount according to the current reserve ratio
+    const idealAmountOut = (reserveOut * amountIn) / reserveIn;
 
+    // Calculate price impact
+    const priceImpact = ((idealAmountOut - amountOut) / idealAmountOut) * 100;
+
+    return priceImpact;
+  }
+
+  function maxBigInt(a: BigNumber, b: BigNumber) {
+    return a > b ? a : b;
+  }
+  function minBigInt(a: BigNumber, b: BigNumber) {
+    return a < b ? a : b;
+  }
 
 export default AgentSwap
