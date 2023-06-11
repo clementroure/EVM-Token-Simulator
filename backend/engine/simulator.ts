@@ -9,6 +9,7 @@ import Stopwatch from 'statman-stopwatch';
 import Printer from "./printer";
 import AgentBase from "./agentBase";
 import { MyAgent, MyContractFactory, Token } from "../utils/types";
+import JumpDiffusion from "../utils/jumpDiffusion";
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 dotenv.config();
@@ -113,6 +114,13 @@ export default class Simulator{
    }
 
    async start(){
+
+        // Test the model
+
+        // Test the model and save results to a CSV file
+        const model = new JumpDiffusion(100, 0.05, 0.2, -0.2, 0.3, 1);
+        const path = model.simulate(1, 0.01);
+        model.saveToCSV(path, 'JumpDiffusion.csv');
 
      console.log('Simulation started')
     //  const txt =  'Initialisation' + ' -> amountA: ' +  this.trackedResults[1]/10**18 + ' amountB: ' + this.trackedResults[0]/10**6 + '\n'

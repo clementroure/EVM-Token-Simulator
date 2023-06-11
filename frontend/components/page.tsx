@@ -9,15 +9,15 @@ interface Props {
 
 const Page = ({ title, children }: Props) => (
 	<>
-		{/* {title ? (
+		{title ? (
 			<Head>
-				<title>Template | {title}</title>
+				<title>{title}</title>
 			</Head>
-		) : null} */}
+		) : null}
 
-		<Appbar />
+		{/* <Appbar /> */}
 
-		<main className='p-6'>{children}</main>
+		<main>{children}</main>
 
 		{/* <BottomNav /> */}
 	</>

@@ -10,6 +10,7 @@
 	},
 	"dependencies": {
 		"chart.js": "^4.2.1",
+		"chartjs-plugin-zoom": "^2.0.1",
 		"framer-motion": "^10.2.4",
 		"next": "^13.2.4",
 		"next-pwa": "^5.5.2",

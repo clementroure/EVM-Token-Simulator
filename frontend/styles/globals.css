@@ -2,69 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-	/* @apply min-h-screen select-none bg-zinc-50 text-zinc-900 antialiased p-safe dark:bg-black dark:text-zinc-50; */
-	/* PWA enhancements */
+body, html {
+    /* select-none */
+	/* @apply min-h-screen bg-gray-100 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100;  */
+    @apply min-h-screen antialiased ; 
 	-webkit-overflow-scrolling: touch;
 	-webkit-tap-highlight-color: transparent;
 	-webkit-touch-callout: none;
-	background-color: whitesmoke;
 }
-
-/* body::-webkit-scrollbar-track {
-background: #f5f5f5; 
-}
-
-body::-webkit-scrollbar-thumb {
-background-color: rgba(43, 43, 43, 0.3); 
-border-radius: 0px; 
-border: 0px solid rgb(27, 27, 27); 
-}
-body::-webkit-scrollbar-thumb:hover { 
-background-color: rgbA(10,0,0, 0.4);
-}   */
 
 body::-webkit-scrollbar-track {
-background: #000000; /* color of the tracking area */
+    @apply bg-white dark:bg-[#111827];
 }
 body::-webkit-scrollbar-thumb {
-background-color: rgba(255, 255, 255, 0.3); /* color of the scroll thumb */
-border-radius: 0px; /* roundness of the scroll thumb */
-border: 0px solid rgb(14, 14, 14); /* creates padding around scroll thumb */
+    @apply bg-[#DCDCDC] dark:bg-gray-800 rounded-3xl;
 }
-body::-webkit-scrollbar-thumb:hover { 
-background-color: rgbA(255,255,255, 0.4);
-}  
 
 body::-webkit-scrollbar {
-width:10px; /* width of the entire scrollbar */
+width: 8px;
 }
 
-/* Firefox */
+
 ::-moz-selection {
 background: rgb(39, 168, 227, 0.3);
-/* color: white; */
 }
 ::selection {
 background: rgb(39, 168, 227, 0.3);
-/* color: white; */
 }
 
-*:not(input):not(textarea) {
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
-	 user-select: none;
-	}
-  textarea {
-	resize: none;
-  }
-  audio::-webkit-media-controls-mute-button {
-	display: none !important;
-  }
-  
-  audio::-webkit-media-controls-volume-slider {
-	display: none !important;
-  }
+/* *:not(input):not(textarea) {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+} */
+
+textarea {
+resize: none;
+}
