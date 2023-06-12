@@ -1,8 +1,10 @@
-// REST API - Called by the frontend to generate the simulation
 import express from "express";
+import { Server } from 'ws';
+import http from 'http';
 import cors from 'cors'
 import * as dotenv from "dotenv";
-import main from './scripts/uniswapv2/netlist'
+import { Worker } from 'worker_threads';
+
 dotenv.config();
 const app = express();
 
@@ -11,20 +13,47 @@ app.use(express.json())
 // CORS Policy
 app.use(cors())
 
+const server = http.createServer(app);
+const wss = new Server({ server });
 
-app.get('/aave', async (req, res) => {
-  try {
-    await main()
-    res.status(200).send("Main function executed successfully")
-  } catch (err) {
-    console.error(err)
-    res.status(500).send("There was an error executing the main function")
-  }
-})
+wss.on('connection', ws => {
+  ws.on('message', async message => {
+    console.log(`Received: ${message}`);
 
+    let params;
+    try {
+      params = JSON.parse(message as string);
+    } catch (err) {
+      console.log('Error parsing JSON', err);
+      return;
+    }
 
-const port = process.env.PORT || 8080
+    if (params.command == 'aave') {
+      const worker = new Worker('./main-worker.js');
 
-app.listen(port, () => {
+      worker.on('message', (result) => {
+        if (result.status === 'success') {
+          ws.send("Main function executed successfully");
+        } else {
+          console.error(result.error);
+          ws.send("There was an error executing the main function");
+        }
+      });
+
+      worker.on('error', (err) => {
+        console.error(err);
+        ws.send("There was an error with the worker thread");
+      });
+
+      worker.postMessage(params);
+    }
+  });
+
+  ws.send('Connected to the server');
+});
+
+const port = process.env.PORT || 8080;
+
+server.listen(port, () => {
   console.log(`App is listening to port ${port}`)
-})
+});

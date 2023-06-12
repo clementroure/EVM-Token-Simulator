@@ -9,7 +9,7 @@ const { JsonRpcProvider } = ethers.providers
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 
-export default async function main() {
+export default async function main({ parentPort }: {parentPort: MessagePort | null}) {
 
   // await block.setAutomine(false)
 
@@ -51,7 +51,7 @@ export default async function main() {
   ]
   // simulation parameters
   const params = {
-    simulationDuration: 100,
+    simulationDuration: 2,
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,
@@ -63,6 +63,8 @@ export default async function main() {
   // Start the simulation using params
   const _simulator = new Simulator(params)
   await _simulator.start()
+
+  parentPort?.postMessage({ status: 'success'})
 }
 
 // main()

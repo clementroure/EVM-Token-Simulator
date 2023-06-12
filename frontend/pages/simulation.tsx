@@ -54,6 +54,19 @@ const Simulation = () => {
     }
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('chartjs-plugin-zoom')
+        .then((module:any) => {
+          ChartJS.register(module)
+        })
+        .catch((err) => {
+          console.error('Failed to load chartjs-plugin-zoom', err);
+        });
+    }
+  }, []);
+
+
   // create data
   const [params, setParams] = useState<Params>({
     S0: 1800,
@@ -85,18 +98,6 @@ const Simulation = () => {
 
     setResults(path);
   };
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('chartjs-plugin-zoom')
-        .then((module:any) => {
-          ChartJS.register(module)
-        })
-        .catch((err) => {
-          console.error('Failed to load chartjs-plugin-zoom', err);
-        });
-    }
-  }, []);
 
   const chartOptions = {
     maintainAspectRatio: false,
@@ -163,10 +164,36 @@ const Simulation = () => {
     scrollToBottom()
   },[results])
 
+  const testBackend = () => {
+
+    let socket = new WebSocket("ws://localhost:8080");
+
+    socket.onopen = function(e) {
+      console.log("[open] Connection established");
+      console.log("Sending to server");
+
+      let params = {
+        command: "aave",
+        arg1: "value1",
+        arg2: "value2"
+      };
+
+      socket.send(JSON.stringify(params));
+    };
+
+    socket.onmessage = function(event) {
+      console.log(`[message] Data received from server: ${event.data}`);
+    };
+
+    socket.onerror = function(error) {
+      console.log(`[error] ${error}`);
+    };
+  }
   
   return (
     <div className={`p-8 min-h-screen space-y-4 pb-16 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}>
       <div className="flex justify-between items-center">
+        <button onClick={testBackend} >TEST BACKEND</button>
         <h2 className="text-2xl font-bold">Jump-Diffusion Price Simulation</h2>
         <button onClick={toggleTheme} className={`px-4 py-2 rounded ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>{theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</button>
       </div>
@@ -200,7 +227,7 @@ const InputField: React.FC<InputFieldProps> = ({ name, value, handleInputChange,
       name={name}
       value={value.toString()}
       onChange={handleInputChange}
-      className={`mt-1 block w-full rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} border-transparent focus:border-gray-500 focus:bg-white focus:ring-0`}
+      className={`mt-1 block w-full rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} border-transparent focus:border-gray-500 focus:ring-0`}
     />
   </div>
 );

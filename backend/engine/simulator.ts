@@ -114,7 +114,6 @@ export default class Simulator{
    }
 
    async start(){
-
         // Test the model
 
         // Test the model and save results to a CSV file
