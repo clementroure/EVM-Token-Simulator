@@ -5,6 +5,7 @@ import Printer from "./printer"
 abstract class AgentBase {
     readonly name: String
     readonly id: number
+    readonly parentPort: MessagePort | null
     readonly wallet: SignerWithAddress
     readonly printer: Printer | undefined = undefined
     readonly getStep: Function
@@ -14,17 +15,18 @@ abstract class AgentBase {
     contracts?: { [key: string]: Contract } = {}
 
     constructor(
-        name: String, wallet: SignerWithAddress,  printer: Printer, getStep: Function, setTrackedResults: Function,
+        name: String, parentPort: MessagePort | null, wallet: SignerWithAddress,  printer: Printer, getStep: Function, setTrackedResults: Function,
         distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract },
     ){
         this.name = name
         this.id = parseInt(name.slice(-1))
+        this.parentPort = parentPort
         this.wallet = wallet
         this.printer = printer
-        this.getStep = getStep,
-        this.setTrackedResults = setTrackedResults,
+        this.getStep = getStep
+        this.setTrackedResults = setTrackedResults
         // optional
-        this.distributions = distributions,
+        this.distributions = distributions
         this.contracts = contracts
      }
     

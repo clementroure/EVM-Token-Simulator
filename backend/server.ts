@@ -32,11 +32,19 @@ wss.on('connection', ws => {
       const worker = new Worker('./main-worker.js');
 
       worker.on('message', (result) => {
+        let msg;
         if (result.status === 'success') {
-          ws.send("Main function executed successfully");
-        } else {
+          msg = { status: 'success', value: result.value }
+          ws.send(JSON.stringify(msg));
+        } 
+        else if(result.status == 'update'){
+          msg = { status: 'update', value: result.value }
+          ws.send(JSON.stringify(msg));
+        }
+        else {
           console.error(result.error);
-          ws.send("There was an error executing the main function");
+          msg = { status: 'error', value: "There was an error executing the main function" }
+          ws.send(JSON.stringify(msg));
         }
       });
 
@@ -49,7 +57,8 @@ wss.on('connection', ws => {
     }
   });
 
-  ws.send('Connected to the server');
+  let connectMsg = { status: 'info', value: 'Connected to the server' };
+  ws.send(JSON.stringify(connectMsg));
 });
 
 const port = process.env.PORT || 8080;

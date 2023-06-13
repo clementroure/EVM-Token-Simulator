@@ -13,12 +13,13 @@ class AgentSwap extends AgentBase {
     decimals:number = 18
 
     constructor(
-      name: string, wallet: SignerWithAddress, printer: Printer,
+      name: string, parentPort:MessagePort | null, wallet: SignerWithAddress, printer: Printer,
       getStep: Function, setTrackedResults: Function,
       distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
       super(
-        name,
+        name,    
+        parentPort,
         wallet, 
         printer,
         getStep,
@@ -118,6 +119,7 @@ class AgentSwap extends AgentBase {
         // Price Impact
         const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
         console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
+        this.parentPort?.postMessage({ status: 'update', value: priceImpact.toFixed(2)})
 
         this.token_before = await this.contracts!['tokenB'].callStatic.balanceOf(to)
         this.decimals = 6
@@ -155,6 +157,7 @@ class AgentSwap extends AgentBase {
         // Price Impact
         const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
         console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
+        this.parentPort?.postMessage({ status: 'update', value: priceImpact.toFixed(2)})
 
         this.token_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
         this.decimals = 18

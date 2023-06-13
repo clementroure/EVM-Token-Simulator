@@ -51,21 +51,19 @@ export default async function main({ parentPort }: {parentPort: MessagePort | nu
   ]
   // simulation parameters
   const params = {
-    simulationDuration: 2,
+    simulationDuration: 10,
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,
     agents: agents,
     trackedResults: [reserves[0], reserves[1]],
     contracts: contracts,
-    tokens: tokens
+    tokens: tokens,
+    parentPort: parentPort
   }
   // Start the simulation using params
   const _simulator = new Simulator(params)
   await _simulator.start()
-
-  parentPort?.postMessage({ status: 'success'})
+  // return result
+  parentPort?.postMessage({ status: 'success', value: 'Simulation ended !'})
 }
-
-// main()
-//     .catch((error) => console.error("Error simulating scenario: ", error))

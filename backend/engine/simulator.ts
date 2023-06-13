@@ -29,6 +29,7 @@ export default class Simulator{
    distributions?: { [key: string]: number[] } = {}
    contracts?: { [key: string]: Contract } = {}
    tokens?: Token[]
+   parentPort: MessagePort | null
 
    constructor(params: {
     simulationDuration: number, 
@@ -36,12 +37,14 @@ export default class Simulator{
     agents: MyAgent[],
     trackedResults: number[],
     contracts: MyContractFactory[],
-    tokens: Token[]
+    tokens: Token[],
+    parentPort: MessagePort | null
    }){
     this.simulationDuration = params.simulationDuration
     this.trackedResults = params.trackedResults
     this.printer = new Printer(params.trackedResults)
     this.tokens = params.tokens
+    this.parentPort = params.parentPort
     
     this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
    }
@@ -94,7 +97,7 @@ export default class Simulator{
             // instantiate agent
             this.agents!.push(
                 new agents[i].type(
-                    'swap_'+j.toString(), this.agentWallets[j], this.printer,
+                    'swap_'+j.toString(),this.parentPort, this.agentWallets[j], this.printer,
                     this.getStep, this.setTrackedResults,
                     this.distributions, this.contracts
                 )
@@ -117,9 +120,9 @@ export default class Simulator{
         // Test the model
 
         // Test the model and save results to a CSV file
-        const model = new JumpDiffusion(100, 0.05, 0.2, -0.2, 0.3, 1);
-        const path = model.simulate(1, 0.01);
-        model.saveToCSV(path, 'JumpDiffusion.csv');
+        // const model = new JumpDiffusion(100, 0.05, 0.2, -0.2, 0.3, 1);
+        // const path = model.simulate(1, 0.01);
+        // model.saveToCSV(path, 'JumpDiffusion.csv');
 
      console.log('Simulation started')
     //  const txt =  'Initialisation' + ' -> amountA: ' +  this.trackedResults[1]/10**18 + ' amountB: ' + this.trackedResults[0]/10**6 + '\n'

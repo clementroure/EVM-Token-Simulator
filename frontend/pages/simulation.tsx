@@ -1,6 +1,7 @@
 import { useState, ChangeEvent, MouseEvent, useEffect, useRef } from 'react';
 import JumpDiffusion from '../lib/jumpDiffusion';
 import { Line } from 'react-chartjs-2';
+import { motion } from 'framer-motion';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -182,7 +183,17 @@ const Simulation = () => {
     };
 
     socket.onmessage = function(event) {
-      console.log(`[message] Data received from server: ${event.data}`);
+      const result = JSON.parse(event.data);
+
+      if(result.status === 'success'){
+        console.log(result.value);
+      } 
+      else if(result.status === 'update'){
+        console.log(result.value);
+      }
+      else if(result.status === 'error'){
+        console.error("Error status received with message: ", result.value);
+      }
     };
 
     socket.onerror = function(error) {
