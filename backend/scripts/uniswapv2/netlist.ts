@@ -1,15 +1,21 @@
 import { ethers } from "hardhat"
 import Simulator from "../../engine/simulator"
 import { MyAgent, MyContractFactory, Token } from "../../utils/types"
-import AgentSwap from "./agents/agentSwap"
-import AgentLiquidity from "./agents/agentLiquidity"
 import * as abi from '../../constants/abi'
 import * as address from '../../constants/address'
+import { Contract } from "ethers/lib/ethers"
+import AgentSwap from "./agents/agentSwap"
+import AgentLiquidity from "./agents/agentLiquidity"
 const { JsonRpcProvider } = ethers.providers
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 
-export default async function main({ parentPort }: {parentPort: MessagePort | null}) {
+export default async function main({ parentPort, contracts, tokens, agents }: {
+  parentPort: MessagePort | null; 
+  contracts: MyContractFactory[]; 
+  tokens: Token[];
+  agents: any;
+}) {
 
   // await block.setAutomine(false)
 
@@ -31,39 +37,131 @@ export default async function main({ parentPort }: {parentPort: MessagePort | nu
   // console.log('1 WETH = $' + price)
 
   // Add the address and the abi of the contracts you want to interact with
-  const contracts: MyContractFactory[] = [
+  const _contracts: MyContractFactory[] = [
     {name: 'uniswapV2Router', address: address.UNISWAP_V2_ROUTER, abi: abi.UNISWAP_V2_ROUTER},
     {name: 'uniswapV2Factory', address: address.UNISWAP_V2_FACTORY, abi: abi.UNISWAP_V2_FACTORY},
     {name: 'tokenA', address: address.WETH_GOERLI_FAKE, abi: abi.ERC20},
     {name: 'tokenB', address: address.USDT_GOERLI_FAKE, abi: abi.ERC20},
     {name: 'pair', address: pairAddress, abi: abi.UNISWAP_V2_PAIR},
   ]
-  // define quantity of tokens needed my each agent
-  // WARNING: names have to be the same as your contarcts
-  let tokens: Token[] = [
+
+  // const contracts = _contracts.map((contract) => {
+  //   return {
+  //     ...contract,
+  //     abi: getABI(contract.address, 'goerli')
+  //   };
+  // });
+
+  // // define quantity of tokens needed my each agent
+  // // WARNING: names have to be the same as your contarcts
+  let _tokens: Token[] = [
     {name: 'tokenA', decimals: 18, amount: 100},
     {name: 'tokenB', decimals: 6, amount: 180000}
   ]
-  // agent types and number of each type that will be used within the simulation
-  let agents: MyAgent[] = [
-    {'type': AgentSwap, nb: 19},
+  // const tokens = _tokens.map((token) => {
+  //   return {
+  //     ...token,
+  //     abi: abi.ERC20
+  //   };
+  // });
+
+  // console.log(agents)
+  interface OriginalAgent {
+    agent: 'swap_agent' | 'liquidity_agent';
+    number: number;
+  }
+  
+  type AgentType = typeof AgentSwap | typeof AgentLiquidity;
+  
+  interface TransformedAgent {
+    type: AgentType;
+    nb: number;
+  }
+
+  if (Array.isArray(agents)) {
+    const _agents: TransformedAgent[] = agents.map((item: any) => {
+      let type: AgentType;
+      
+      switch(item.agent) {
+        case 'swap_agent':
+          type = AgentSwap; // assuming AgentSwap is defined
+          break;
+        case 'liquidity_agent':
+          type = AgentLiquidity; // assuming AgentLiquidity is defined
+          break;
+        default:
+          throw new Error(`Unknown agent type: ${item.agent}`);
+      }
+      
+      return {
+        type: type,
+        nb: item.number
+      };
+    });
+  } else {  // crash if aborted without this
+    return; 
+  }
+
+  // console.log(_agents)
+
+  let _agents2: MyAgent[] = [
+    {'type': AgentSwap, nb: 8},
     {'type': AgentLiquidity, nb: 1}
   ]
+
+  
   // simulation parameters
   const params = {
     simulationDuration: 10,
     normalDistribution: true,
     poissonDistribution: true,
     binomialDistribution: true,
-    agents: agents,
+    agents: _agents2,
     trackedResults: [reserves[0], reserves[1]],
-    contracts: contracts,
-    tokens: tokens,
+    contracts: _contracts,
+    tokens: _tokens,
     parentPort: parentPort
   }
-  // Start the simulation using params
-  const _simulator = new Simulator(params)
-  await _simulator.start()
-  // return result
-  parentPort?.postMessage({ status: 'success', value: 'Simulation ended !'})
+
+  // in netlist.ts
+  parentPort!.onmessage = (event) => {
+    if (event.data.command === 'stop') {
+      _simulator.stop();
+    }
+  };
+
+  const _simulator = new Simulator(params);
+  await _simulator.init(true, true, true, _contracts, _agents2);
+  await _simulator.start();
+}
+
+
+
+async function getABI(address: string, network: string = 'goerli') {
+  const etherscan_apiKey = process.env.ETHERSCAN_API_KEY as string;
+  // const polygonscan_apiKey = process.env.NEXT_PUBLIC_POLYGONSCAN_API_KEY as string;
+  let url = '';
+  
+  switch (network) {
+    case 'mainnet':
+      url = `https://api.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${etherscan_apiKey}`;
+      break;
+    case 'goerli':
+      url = `https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${etherscan_apiKey}`;
+      break;
+    // case 'polygon':
+    //   url = `https://api.polygonscan.com/api?module=contract&action=getabi&address=${address}&apikey=${polygonscan_apiKey}`;
+      break;
+    default:
+      throw new Error(`Unsupported network: ${network}`);
+  }
+
+  const response = await fetch(url);
+  const data = await response.json();
+  
+  if (data.status === '1') {
+    return JSON.parse(data.result);
+  } else {
+    throw new Error('Failed to fetch ABI');
+  }
 }

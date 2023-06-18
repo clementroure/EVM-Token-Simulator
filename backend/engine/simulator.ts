@@ -10,11 +10,13 @@ import Printer from "./printer";
 import AgentBase from "./agentBase";
 import { MyAgent, MyContractFactory, Token } from "../utils/types";
 import JumpDiffusion from "../utils/jumpDiffusion";
+import { log } from "firebase-functions/logger";
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 dotenv.config();
 
 export default class Simulator{
+   isRunning: boolean = false;
 
    step: number = 0
    provider: eth.providers.JsonRpcProvider =  new JsonRpcProvider(process.env.ALCHEMY_URL as string)
@@ -46,7 +48,7 @@ export default class Simulator{
     this.tokens = params.tokens
     this.parentPort = params.parentPort
     
-    this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
+    // this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
    }
 
    async init(normalDistribution:boolean, poissonDistribution:boolean, binomialDistribution:boolean, contracts:MyContractFactory[], agents: MyAgent[]){
@@ -125,17 +127,28 @@ export default class Simulator{
         // model.saveToCSV(path, 'JumpDiffusion.csv');
 
      console.log('Simulation started')
+     this.isRunning = true; 
+
     //  const txt =  'Initialisation' + ' -> amountA: ' +  this.trackedResults[1]/10**18 + ' amountB: ' + this.trackedResults[0]/10**6 + '\n'
     //  this.printer!.printTxt(txt)
     //  await this.printer!.printCsv(this.step, this.trackedResults)
 
      this.stopwatch.start()
 
-     while(this.step < this.simulationDuration)
-     await this.takeStep()
+     while(this.step < this.simulationDuration) {
+        if(this.isRunning)
+        await this.takeStep()
+        else
+        break
+     }
 
      this.stopwatch.stop()
      console.log('Simulation duration: ' + (this.stopwatch.stop()/1000).toFixed(3) + 's')
+   }
+
+   stop() {
+    console.log("ABORT")
+    this.isRunning = false;
    }
 
    async takeStep(){
@@ -160,8 +173,12 @@ export default class Simulator{
     //  await block.setAutomine(false) // uniswap v2 slippage
 
      //
+
      for(let i =0; i<this.agents!.length; i++){
+        if(this.isRunning)
         await this.agents![i].takeStep(params)
+        else
+        break
      }
 
     // await block.advance()

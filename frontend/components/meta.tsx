@@ -12,7 +12,7 @@ const Meta = () => (
 		/>
 		<meta name='apple-mobile-web-app-title' content='Template' />
 		<meta name='application-name' content='Template' />
-		<meta name='description' content='VM agent-based token simulator' />
+		<meta name='description' content='EVM agent-based token simulator' />
 		<meta
 			name='theme-color'
 			content='#f4f4f5'
