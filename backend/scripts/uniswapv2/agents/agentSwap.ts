@@ -119,7 +119,13 @@ class AgentSwap extends AgentBase {
         // Price Impact
         const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
         console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
-        this.parentPort?.postMessage({ status: 'update', value: priceImpact.toFixed(2)})
+
+        const data = {
+          agent: this.name,
+          action: "Sell WETH",
+          value: priceImpact.toFixed(2)+ '%',
+        };
+        this.parentPort?.postMessage({ status: 'update', value: data})
 
         this.token_before = await this.contracts!['tokenB'].callStatic.balanceOf(to)
         this.decimals = 6
@@ -157,7 +163,13 @@ class AgentSwap extends AgentBase {
         // Price Impact
         const priceImpact = calculatePriceImpact(parseFloat(ethers.utils.formatUnits(reserveIn,6)), parseFloat(ethers.utils.formatUnits(reserveOut, 18)), parseFloat(ethers.utils.formatUnits(amountIn,6)), parseFloat(ethers.utils.formatUnits(this.expectedAmountOut,18)));
         console.log(`Price impact: ${priceImpact.toFixed(2)}%`)
-        this.parentPort?.postMessage({ status: 'update', value: priceImpact.toFixed(2)})
+
+        const data = {
+          agent: this.name,
+          action: "Buy WETH",
+          value: priceImpact.toFixed(2)+ '%',
+        };
+        this.parentPort?.postMessage({ status: 'update', value: data})
 
         this.token_before = await this.contracts!['tokenA'].callStatic.balanceOf(to)
         this.decimals = 18
@@ -176,7 +188,7 @@ class AgentSwap extends AgentBase {
   
         this.setTrackedResults(this.name, [params.marketPrice, poolPrice])
       } else {
-        // jsut wait and print
+        // just wait and print
         balances = await this.contracts!['pair'].getReserves()
         const poolPrice = (Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)).toFixed(2)
 

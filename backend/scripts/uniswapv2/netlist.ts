@@ -1,16 +1,18 @@
 import { ethers } from "hardhat"
 import Simulator from "../../engine/simulator"
-import { MyAgent, MyContractFactory, Token } from "../../utils/types"
+import { MyAgent, MyContractFactory, PoolDeployer, Token } from "../../utils/types"
 import * as abi from '../../constants/abi'
 import * as address from '../../constants/address'
 import { Contract } from "ethers/lib/ethers"
 import AgentSwap from "./agents/agentSwap"
 import AgentLiquidity from "./agents/agentLiquidity"
+import runHostileCode from '../../utils/isolated'
+import deployPool from '../../utils/deployPool'
 const { JsonRpcProvider } = ethers.providers
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 
-export default async function main({ parentPort, contracts, tokens, agents }: {
+export default async function uniswap_v2({ parentPort, contracts, tokens, agents }: {
   parentPort: MessagePort | null; 
   contracts: MyContractFactory[]; 
   tokens: Token[];
@@ -128,14 +130,34 @@ export default async function main({ parentPort, contracts, tokens, agents }: {
     if (event.data.command === 'stop') {
       _simulator.stop();
     }
+    else if (event.data.command === 'isolate') {
+      isolate(event)
+    }
   };
 
   const _simulator = new Simulator(params);
   await _simulator.init(true, true, true, _contracts, _agents2);
   await _simulator.start();
+
+  // const poolDeployer: PoolDeployer =  {
+  //   tokenA_name: 'Wrapped Ether',
+  //   tokenA_symbol: 'WETH',
+  //   tokenA_decimals : 18,
+  //   tokenA_supply: 100,
+  //   tokenB_name: 'Tether USD',
+  //   tokenB_symbol : 'USDT',
+  //   tokenB_decimals: 6,
+  //   tokenB_supply: 180000
+  // }
+
+  // const pool = await deployPool(poolDeployer)
+  // console.log(pool)
 }
 
-
+const isolate = async (event:any) => {
+  const success = await runHostileCode(event.data.code, 128)
+  console.log('isloated code run: ' + success)
+}
 
 async function getABI(address: string, network: string = 'goerli') {
   const etherscan_apiKey = process.env.ETHERSCAN_API_KEY as string;

@@ -136,14 +136,18 @@ export default class Simulator{
      this.stopwatch.start()
 
      while(this.step < this.simulationDuration) {
-        if(this.isRunning)
-        await this.takeStep()
+        if(this.isRunning){
+            await this.takeStep()
+            this.parentPort?.postMessage({ status: 'step', value: this.step.toString()})
+        }
         else
         break
      }
 
      this.stopwatch.stop()
      console.log('Simulation duration: ' + (this.stopwatch.stop()/1000).toFixed(3) + 's')
+
+     this.parentPort?.postMessage({ status: 'success', value: 'Simulation ended !'})
    }
 
    stop() {

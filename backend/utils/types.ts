@@ -23,3 +23,15 @@ export type Token = {
     decimals: number,
     amount: number
 }
+
+
+export interface PoolDeployer{
+    tokenA_name: string
+    tokenA_symbol: string
+    tokenA_decimals : number
+    tokenA_supply: number
+    tokenB_name: string
+    tokenB_symbol : string
+    tokenB_decimals: number
+    tokenB_supply: number
+}

@@ -49,6 +49,13 @@ class AgentLiquidity extends AgentBase{
       const loss = this.calculateImpermanentLoss(1800, ratio).toFixed(8)
       console.log('Loss : ' + loss + ' %')
 
+      const data = {
+        agent: 'liquidity_0',
+        action: "Impermanent loss",
+        value: loss + '%',
+      };
+      this.parentPort?.postMessage({ status: 'update', value: data})
+
       const txt =  (this.getStep()) + ': Impermanent Loss : ' + loss + ' %' + '\n'
       this.printer!.printTxt(txt)
       // this.setTrackedResults(this.name, balances)
