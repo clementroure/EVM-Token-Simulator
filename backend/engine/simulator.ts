@@ -10,7 +10,6 @@ import Printer from "./printer";
 import AgentBase from "./agentBase";
 import { MyAgent, MyContractFactory, Token } from "../utils/types";
 import JumpDiffusion from "../utils/jumpDiffusion";
-import { log } from "firebase-functions/logger";
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 dotenv.config();

@@ -1,7 +1,7 @@
 {
 	"name": "Token Simulator",
 	"short_name": "Token Simulator",
-	"description": "VM agent-based token simulator",
+	"description": "EVM Agent-Based Token Simulator",
 	"icons": [
 		{
 			"src": "/images/icon-192.png",

@@ -33,7 +33,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     let params;
     try {
-      params = JSON.parse(message as string);
+      params = JSON.parse((message as unknown) as string);
     } catch (err) {
       console.log('Error parsing JSON', err);
       return;
