@@ -2,7 +2,7 @@ const path = require("path");
 const { parentPort, workerData } = require("worker_threads");
 
 parentPort.on("message", (data) => {
-  const { contracts, tokens, agents } = data;
+  const { contracts, tokens, agents, netlist } = data;
 
   const project = path.resolve(__dirname, "./tsconfig.json");
   require("ts-node").register({
@@ -16,7 +16,8 @@ parentPort.on("message", (data) => {
           parentPort,
           contracts,
           tokens,
-          agents
+          agents,
+          netlist,
       });
   } catch (e) {
       console.error(e);

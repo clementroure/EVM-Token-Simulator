@@ -58,7 +58,7 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
         { name: 'uniswapV2Factory', address: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f' },
         { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a' },
         { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3' },
-        { name: 'pair', address: '0x00b64e468d2c705a0907f58505536a6c8c49ab26' },
+        { name: 'pair', address: '0x9cF9dA905a4A65312150Dea6B87242C54A37CE00' },
       ]);
       setTokenFields([
         { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a', decimals: 18, amount: 100 },
@@ -188,7 +188,11 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
         command: "uniswap_v2",
         contracts: contractsFields,
         tokens: tokenFields,
-        agents: agentFields
+        agents: agentFields,
+        netlist: {
+          simulationStep: simulationStep,
+          autoMining: autoMining,
+        }
       };
   
       socketRef.current!.send(JSON.stringify(params));

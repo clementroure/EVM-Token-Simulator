@@ -47,7 +47,7 @@ export const Environnment = ({
                 <CardContent>
                     <div>
                         <Label className="font-medium">
-                            Auto mining add a block for each transaction.
+                            Add a block for each transaction.
                             If you work with slippage, disable it.
                         </Label>
                     </div>

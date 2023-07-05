@@ -1,4 +1,6 @@
 import { Contract } from "ethers"
+import AgentSwap from "../scripts/uniswapv2/agents/agentSwap"
+import AgentLiquidity from "../scripts/uniswapv2/agents/agentLiquidity"
 
 export type MyContract = {
     name: string,
@@ -34,4 +36,10 @@ export interface PoolDeployer{
     tokenB_symbol : string
     tokenB_decimals: number
     tokenB_supply: number
+}
+
+export type AgentType = typeof AgentSwap | typeof AgentLiquidity;
+export interface TransformedAgent {
+  type: AgentType;
+  nb: number;
 }
