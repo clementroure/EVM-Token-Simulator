@@ -71,13 +71,14 @@ function Agents({
                           <Label className='text-xl font-bold tracking-tight my-auto h-full'>Agent {i + 1}</Label>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 my-4">
-                          <Select
-                            name="name"
-                            value={options.find(option => option.value === field.name)}
-                            onChange={(selectedOption: any) => handleSelectChange(i, selectedOption)}
-                            options={options}
-                            placeholder="Select Agent Type"
-                          />
+                      <Select
+                        name="name"
+                        value={allOptions.find(option => option.value === field.name)}
+                        onChange={(selectedOption: any) => handleSelectChange(i, selectedOption)}
+                        options={options}
+                        placeholder="Select Agent Type"
+                      />
+
                           <Input
                             min={0}
                             max={20}

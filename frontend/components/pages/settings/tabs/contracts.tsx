@@ -43,14 +43,16 @@ function Contracts({
             <CardContent>
               {contractFields.map((field:any, i:number) => (
                 <div key={i}>
-                    <div className='flex flex-row'>
-                        {contractFields.length > 1 && (
-                          <Button variant="ghost" onClick={() => handleRemoveField(i)} >
-                              <Delete className='cursor-pointer focus:scale-105 transition-all'/>
-                          </Button>
-                        )}
-                        <Label className='text-xl font-bold tracking-tight my-auto h-full'>Contract {i + 1}</Label>
-                     </div>
+                  <div className='flex flex-row'>
+                    {contractFields.length > 1 && (
+                      <Button variant="ghost" onClick={() => handleRemoveField(i)}>
+                        <Delete className='cursor-pointer focus:scale-105 transition-all'/>
+                      </Button>
+                    )}
+                    <Label className='text-xl font-bold tracking-tight my-auto h-full'>
+                      {field.name ? field.name : `Contract ${i + 1}`}
+                    </Label>
+                  </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 my-4">
                         <Input
                         type="text"

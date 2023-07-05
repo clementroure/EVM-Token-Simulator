@@ -27,7 +27,7 @@ export const Environnment = ({
                 </CardHeader>
                 <CardContent>
                     <SliderData
-                        name='Number of steps' 
+                        name={`Number of steps: ${simulationStep}`}
                         hint='This is the duration of the simulation.' 
                         max={100}
                         min={1}
@@ -45,6 +45,12 @@ export const Environnment = ({
                 <FastForward className="h-5 w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
+                    <div>
+                        <Label className="font-medium">
+                            Auto mining add a block for each transaction.
+                            If you work with slippage, disable it.
+                        </Label>
+                    </div>
                     <div className="flex items-center space-x-2 mt-2">
                         <Switch id="deposit-cancelation" 
                             checked={autoMining}

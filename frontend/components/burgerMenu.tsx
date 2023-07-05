@@ -52,11 +52,11 @@ const buttonStyles = (buttonName:string) => (selectedPage) === buttonName
 //
   const handleTestMode = () => {
     setTestMode(!testMode);
-    setSelectedChain(!testMode ? '11155111' : '1');
+    setSelectedChain(!testMode ? '4' : '1');
   }
 
   useEffect(() => {
-    setSelectedChain(testMode ? '11155111' : '1')
+    setSelectedChain(testMode ? '4' : '1')
   },[testMode])
   //
 
@@ -112,6 +112,7 @@ const buttonStyles = (buttonName:string) => (selectedPage) === buttonName
                                     <SelectContent>
                                     {testMode ?
                                     <>
+                                        <SelectItem value="4">Goerli</SelectItem>
                                         <SelectItem value="11155111">Sepolia</SelectItem>
                                         <SelectItem value="97">BSC Testnet</SelectItem>
                                         <SelectItem value="80001">Mumbai</SelectItem>

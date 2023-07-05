@@ -9,6 +9,7 @@ import {
 import { DataTableItem } from "@/types/settings";
 
 export const Overview = ({
+  simulationStep,
   marketPrice,
   contractFields,
   tokenFields,
@@ -32,28 +33,42 @@ export const Overview = ({
     }));
 
     const agentData = agentFields
-      .filter((agentField: any) => agentField.agent && agentField.number !== undefined)
+      .filter((agentField: any) => agentField.name && agentField.number !== undefined)
       .map((agentField: any) => ({
-          agent: agentField.agent,
+          agent: agentField.name,
           number: agentField.number,
     }));
 
     const marketPriceData = marketPrice.map((price: number, index: number) => ({
-      id: index + 1,
+      id: index,
       price: price,
     }));
 
-    const environnmentData = [{ Setting: 'Auto mining', Value: autoMining ? 'On' : 'Off' }];
-
+    const environnmentData = [
+      { Setting: 'Simulation Step', Value: simulationStep },
+      { Setting: 'Auto mining', Value: autoMining ? 'On' : 'Off' },
+    ];
+    
     return(
       <>
+        <Card className='shadow'>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-medium">Netlist</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mt-2 scrollbar-thin scrollbar-thumb-scrollbar scrollbar-thumb-gray-200 scrollbar-track-gray-50 dark:scrollbar-thumb-gray-900 dark:scrollbar-track-black !max-h-[400px] overflow-y-auto rounded">
+              <TableData data={environnmentData}/>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className='shadow'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">Contracts</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mt-2 scrollbar-thin scrollbar-thumb-scrollbar scrollbar-thumb-gray-200 scrollbar-track-gray-50 dark:scrollbar-thumb-gray-900 dark:scrollbar-track-black !max-h-[400px] overflow-y-auto rounded">
-              <TableData data={contractData}/>
+              <TableData data={contractData} />
             </div>
           </CardContent>
         </Card>
@@ -64,10 +79,11 @@ export const Overview = ({
           </CardHeader>
           <CardContent>
             <div className="mt-2 scrollbar-thin scrollbar-thumb-scrollbar scrollbar-thumb-gray-200 scrollbar-track-gray-50 dark:scrollbar-thumb-gray-900 dark:scrollbar-track-black !max-h-[400px] overflow-y-auto rounded">
-              <TableData data={tokenData}/>
+              <TableData data={tokenData} />
             </div>
           </CardContent>
         </Card>
+
 
         <Card className='shadow'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -87,17 +103,6 @@ export const Overview = ({
           <CardContent>
             <div className="mt-2 scrollbar-thin scrollbar-thumb-scrollbar scrollbar-thumb-gray-200 scrollbar-track-gray-50 dark:scrollbar-thumb-gray-900 dark:scrollbar-track-black !max-h-[400px] overflow-y-auto rounded">
               <TableData data={marketPriceData}/>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className='shadow'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">Environnment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-2 scrollbar-thin scrollbar-thumb-scrollbar scrollbar-thumb-gray-200 scrollbar-track-gray-50 dark:scrollbar-thumb-gray-900 dark:scrollbar-track-black !max-h-[400px] overflow-y-auto rounded">
-              <TableData data={environnmentData}/>
             </div>
           </CardContent>
         </Card>

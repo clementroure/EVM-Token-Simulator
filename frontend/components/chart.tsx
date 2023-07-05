@@ -1,7 +1,6 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { useState, ChangeEvent, MouseEvent, useEffect, useRef } from 'react';
+import { ResponsiveContainer } from "recharts"
+import { useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
-import { motion } from 'framer-motion';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,18 +27,7 @@ ChartJS.register(
 
 export function Chart({ data }: any) {
 
-    // load data from csv
-    const [csvData, setCsvData] = useState<Array<{date: string, close: number}>>([]);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
     const { theme, setTheme } = useTheme();
-  
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event!.target!.files![0];
-      if (file) {
-        setSelectedFile(file);
-      }
-    };
   
     useEffect(() => {
       if (typeof window !== 'undefined') {
@@ -71,7 +59,7 @@ export function Chart({ data }: any) {
       },
       plugins: {
         legend: {
-          display: false // add this
+          display: false
         },
         zoom: {
           zoom: {
@@ -90,18 +78,6 @@ export function Chart({ data }: any) {
         }
       }
     }; 
-  
-    // const scrollToBottom = () => {
-  
-    //   window.scrollTo({
-    //     top: document.documentElement.scrollHeight,
-    //     behavior: 'smooth',
-    //   });
-    // };
-    // useEffect(() => {
-    //   scrollToBottom()
-    // },[results])
-
 
   return (
     <ResponsiveContainer width="100%" height={350}>

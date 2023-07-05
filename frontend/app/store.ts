@@ -38,9 +38,9 @@ const getLocalStorageState = (): AppState => {
   return {
     selectedProduct: 'Uniswap V2',
     setSelectedProduct: () => {},
-    selectedChain: '1',
+    selectedChain: '4',
     setSelectedChain: () => {},
-    testMode: false,
+    testMode: true,
     setTestMode: () => {},
     isLogged: false,
     setIsLogged: () => {},

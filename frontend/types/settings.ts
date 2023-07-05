@@ -36,7 +36,7 @@ export interface RowData {
   }
   
   export   interface AgentField {
-    agent: string;
+    name: string;
     number: number;
   }
   

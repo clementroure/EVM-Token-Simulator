@@ -79,6 +79,7 @@ export function MainNav({ items }: MainNavProps) {
             <SelectContent>
               {testMode ?
               <>
+                <SelectItem value="4">Goerli</SelectItem>
                 <SelectItem value="11155111">Sepolia</SelectItem>
                 <SelectItem value="97">BSC Testnet</SelectItem>
                 <SelectItem value="80001">Mumbai</SelectItem>

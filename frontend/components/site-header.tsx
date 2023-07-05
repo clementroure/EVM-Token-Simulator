@@ -24,7 +24,7 @@ import {
   ledgerWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, bsc, optimism, arbitrum, sepolia, polygonMumbai, bscTestnet } from 'wagmi/chains';
+import { mainnet, polygon, bsc, optimism, arbitrum, sepolia, polygonMumbai, bscTestnet, goerli } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import merge from 'lodash.merge';
 import {
@@ -75,6 +75,7 @@ export function SiteHeader() {
   );
   const testnetChainsConfig = configureChains(
     [
+      goerli,
       sepolia,
       bscTestnet,
       polygonMumbai,

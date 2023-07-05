@@ -84,7 +84,7 @@ export default async function uniswap_v2({ parentPort, contracts, tokens, agents
     const _agents: TransformedAgent[] = agents.map((item: any) => {
       let type: AgentType;
       
-      switch(item.agent) {
+      switch(item.name) {
         case 'swap_agent':
           type = AgentSwap; // assuming AgentSwap is defined
           break;
@@ -92,7 +92,7 @@ export default async function uniswap_v2({ parentPort, contracts, tokens, agents
           type = AgentLiquidity; // assuming AgentLiquidity is defined
           break;
         default:
-          throw new Error(`Unknown agent type: ${item.agent}`);
+          throw new Error(`Unknown agent type: ${item.name}`);
       }
       
       return {

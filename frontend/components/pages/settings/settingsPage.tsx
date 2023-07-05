@@ -34,7 +34,8 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
   });
 
   const selectedProduct = useStore(state => state.selectedProduct);
-  const selectedChain = useStore(state => state.selectedChain);
+  const setSelectedChain = useStore(state => state.setSelectedChain);
+  const setTestMode = useStore(state => state.setTestMode);
   const isSimulating = useStore(state => state.isSimulating);
   const setIsSimulating = useStore(state => state.setIsSimulating);
   const isSimulationLoading = useStore(state => state.isSimulationLoading);
@@ -45,9 +46,52 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
   const [selectedTab, setSelectedTab] = useState('0')
 
   // form
-  const [contractsFields, setContractsFields] = useState<ContractField[]>([{ name: '', address: '' }]);
-  const [tokenFields, setTokenFields] = useState<TokenField[]>([{ name: '', address: '', decimals: 0, amount: 0 }]);
-  const [agentFields, setAgentFields] = useState<AgentField[]>([{ agent: 'swap_agent', number: 0 }]);
+  const [contractsFields, setContractsFields] = useState<ContractField[]>([]);
+  const [tokenFields, setTokenFields] = useState<TokenField[]>([]);
+  const [agentFields, setAgentFields] = useState<AgentField[]>([]);
+
+  useEffect(() => {
+    if (selectedProduct === 'Uniswap V2') {
+
+      setContractsFields([
+        { name: 'uniswapV2Router', address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' },
+        { name: 'uniswapV2Factory', address: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f' },
+        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a' },
+        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3' },
+        { name: 'pair', address: '0x00b64e468d2c705a0907f58505536a6c8c49ab26' },
+      ]);
+      setTokenFields([
+        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a', decimals: 18, amount: 100 },
+        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3', decimals: 6, amount: 180000 },
+      ]);
+      setAgentFields([
+        { name: 'swap_agent', number: 10 },
+        { name: 'liquidity_agent', number: 1 },
+      ]);
+      setTestMode(true);
+      setSelectedChain('4');
+
+    } else if (selectedProduct === 'AAVE') {
+
+      setContractsFields([
+        { name: 'uniswapV2Router', address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' },
+        { name: 'uniswapV2Factory', address: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f' },
+        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a' },
+        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3' },
+        { name: 'pair', address: '0x00b64e468d2c705a0907f58505536a6c8c49ab26' },
+      ]);
+      setTokenFields([
+        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a', decimals: 18, amount: 100 },
+        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3', decimals: 6, amount: 180000 },
+      ]);
+      setAgentFields([
+        { name: 'swap_agent', number: 10 },
+        { name: 'liquidity_agent', number: 1 },
+      ]);
+      setTestMode(true);
+      setSelectedChain('11155111');
+    }
+  }, [selectedProduct]);
 
   //environnment
   const [autoMining, setAutoMining] = useState(true)
@@ -171,11 +215,15 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
         console.log(result.value);
         setIsSimulationLoading(false)
         setIsSimulating(false)
+        toast({
+          title: `Simulation Complete`,
+          description: `The simulation ended successfully!`,
+        });
       } 
       else if(result.status == 'step'){
         
         step+=1
-        const progressPercentage = (step / params.dt) * 100;
+        const progressPercentage = (step / simulationStep) * 100;
         setSimulationProgress(progressPercentage);
 
       }
@@ -232,6 +280,11 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
       }
     }
   }, []); // No need for dependency array as useRef doesn't cause re-render
+
+  useEffect(() => {
+     if(marketPrice.length < 1)
+     runPrice()
+  },[])
 
   // isolate call bakend
   const callIsolate = (code: string) => {
@@ -303,6 +356,7 @@ return (
             </TabsContent>
             <TabsContent className='w-full mt-4 space-y-6' value="4">
                 <Prices 
+                   marketPrice={marketPrice}
                    params={params} setParams={setParams}
                    data={data} runPrice={runPrice}
                    handleFileChange={handleFileChange}
@@ -315,6 +369,7 @@ return (
             </TabsContent>
             <TabsContent className='w-full mt-4 space-y-6' value="6">
                 <Overview 
+                 simulationStep={simulationStep}
                  marketPrice={marketPrice}
                  contractFields={contractsFields}
                  tokenFields={tokenFields}
@@ -328,6 +383,7 @@ return (
                   abortSimulation={abortSimulation}
                   isSimulating={isSimulating}
                   isSimulationLoading={isSimulationLoading}
+                  simulationResults={simulationResults}
                 />
             </TabsContent>
           </Tabs>
