@@ -100,7 +100,7 @@ export function DataTableToolbar<TData>({
         )}
       </div>
 
-      <Button size="sm" className="mr-4 h-7" onClick={() => downloadFile(data)}>
+      <Button variant="outline" size="sm" className="mr-4 h-[32px]" onClick={() => downloadFile(data)}>
         <Download className="mr-2 h-4 w-4" />
         Download
       </Button>

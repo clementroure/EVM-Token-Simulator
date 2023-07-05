@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Chart } from "@/components/chart"
 import { DataTableItem } from "@/types/settings";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Results = ({
     runSimulation, 
@@ -21,6 +22,8 @@ export const Results = ({
 }: any) => {
 
   const simulationProgress = useStore(state => state.simulationProgress);
+
+  const [selectedTab, setSelectedTab] = useState('0')
 
   const filteredSimulationResults = simulationResults.filter((item: DataTableItem) => item.agent.includes('swap'));
   const graphData = {
@@ -67,22 +70,30 @@ export const Results = ({
             <Progress value={simulationProgress} />
         </div>
 
-        {simulationResults.length > 0 &&
-        <div className="mt-4 mb-10 space-y-4">
-            <Label className="text-xl md:text-2xl font-bold">Results</Label>
-            <DataTable data={simulationResults} columns={columns}/>
-        </div>
-        }
-
-        {simulationResults.length > 0 &&
-            <div className="max-w-[1200px] mx-auto ml-[52px] mb-14 space-y-4">
-                <Label className="text-xl md:text-2xl font-bold">Graph</Label>
-                <Chart data={graphData}/>
-            </div>
-        }
+        <Tabs onValueChange={(e) => setSelectedTab(e)} value={selectedTab} className="w-full">
+            <TabsList>
+              <TabsTrigger className="w-28" value="0">Table</TabsTrigger>
+              <TabsTrigger className="w-28" value="1">Graph</TabsTrigger>
+            </TabsList>
+            <TabsContent className='w-full mt-4 space-y-6' value="0">
+            {simulationResults.length > 0 &&
+                <div className="mt-4 mb-10 space-y-4">
+                    <Label className="text-xl md:text-2xl font-bold">Results</Label>
+                    <DataTable data={simulationResults} columns={columns}/>
+                </div>
+            }
+            </TabsContent>
+            <TabsContent className='w-full mt-4 space-y-6' value="1">
+            {simulationResults.length > 0 &&
+                <div className="max-w-[1200px] mx-auto ml-[52px] mb-14 space-y-4">
+                    <Label className="text-xl md:text-2xl font-bold">Graph</Label>
+                    <Chart data={graphData}/>
+                </div>
+            }
+            </TabsContent>
+        </Tabs>
 
         <ScrollButton />
-       
     </div>
   )
 }
