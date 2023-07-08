@@ -70,7 +70,7 @@ class AgentLiquidity extends AgentBase{
         const amountBMin = 1
 
         const to = this.wallet.address;
-        const deadline = Math.floor(Date.now() / 1000) + (60*10) // 10 min from UNISX time
+        const deadline = Math.floor(Date.now() / 1000) + (60*100) // 10 min from UNISX time
 
         await this.contracts!['uniswapV2Router'].addLiquidity(this.contracts!['tokenA'].address, this.contracts!['tokenB'].address, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
     }
@@ -81,7 +81,7 @@ class AgentLiquidity extends AgentBase{
         const amountBMin = 1
         
         const to = this.wallet.address;
-        const deadline =  Math.floor(Date.now() / 1000) + (60*10)
+        const deadline =  Math.floor(Date.now() / 1000) + (60*100)
 
         const liquidity = await this.contracts!['pair'].callStatic.balanceOf(to)
 

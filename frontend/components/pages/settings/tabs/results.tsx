@@ -45,6 +45,7 @@ export const Results = ({
     }else{
         setCurrentStep(0)
         setCurrentMarketPrice([marketPrice[0]])
+        setStepList([0])
     }
   }, [simulationResults]);
     
@@ -68,8 +69,8 @@ export const Results = ({
         label: 'Impermanent Loss',
         data: liquiditySimulationResults.map((item: DataTableItem) => parseFloat(item.value)),
         fill: false,
-        backgroundColor: 'rgba(255, 0, 255, 0.3)', // Purple color (RGBA)
-        borderColor: 'rgba(255, 0, 255, 0.8)', // Purple color (RGBA)
+        backgroundColor: 'rgba(255, 0, 255, 0.3)', 
+        borderColor: 'rgba(255, 0, 255, 0.8)', 
       },
     ],
   };  
@@ -85,6 +86,18 @@ export const Results = ({
       },
     ],
   };  
+  const poolPriceGraphData = {
+    labels: swapSimulationResults.map((item: DataTableItem) => item.step),
+    datasets: [
+        {
+            label: 'Pool Price',
+            data: swapSimulationResults.map((item: DataTableItem) => parseFloat(item.poolPrice)),
+            fill: false,
+            backgroundColor: 'rgba(34,139,34,0.4)',
+            borderColor: 'rgba(34,139,34,1)',
+        },
+    ],
+  };
 
   return (
     <div className='mt-6 w-full'>
@@ -134,13 +147,16 @@ export const Results = ({
             {simulationResults.length > 0 &&
                 <div className="max-w-[1200px] mx-auto ml-[52px] mb-14 space-y-4">
                     <Label className="text-xl md:text-2xl font-bold">Market Price</Label>
-                    <Chart data={marketPriceGraphData}/>
+                    <Chart data={marketPriceGraphData} size='lg'/>
+                    <div className="h-2"/>
+                    <Label className="text-xl md:text-2xl font-bold">pool Price</Label>
+                    <Chart data={poolPriceGraphData} size='sm'/>
                     <div className="h-2"/>
                     <Label className="text-xl md:text-2xl font-bold">Swap Agents</Label>
-                    <Chart data={swapGraphData}/>
+                    <Chart data={swapGraphData} size='sm'/>
                     <div className="h-2"/>
                     <Label className="text-xl md:text-2xl font-bold">Liquidity Agents</Label>
-                    <Chart data={liquidityGraphData}/>
+                    <Chart data={liquidityGraphData} size='lg'/>
                 </div>
             }
             </TabsContent>

@@ -44,5 +44,6 @@ export interface RowData {
     step: string;
     agent: string;
     action: string;
+    poolPrice: string;
     value: string;
   }

@@ -52,6 +52,13 @@ export const columns: ColumnDef<any>[] = [
     cell: ({ row }) => <div>{row.getValue("action")}</div>,
   },
   {
+    accessorKey: "poolPrice",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Pool Price" />
+    ),
+    cell: ({ row }) => <div>{row.getValue("poolPrice")}</div>,
+  },
+  {
     accessorKey: "value",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Value" />

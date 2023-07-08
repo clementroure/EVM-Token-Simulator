@@ -85,11 +85,13 @@ class AgentSwap extends AgentBase {
       // Recipient of the output tokens.
       const to = this.wallet.address
       // deadline
-      const deadline = Math.floor(Date.now() / 1000) + (60*10)
+      const deadline = Math.floor(Date.now() / 1000) + (60*100)
       // ratio tokenA/tokenB
       let balances = await this.contracts!['pair'].getReserves()
       const tokenA_balance = balances[1] / 10**18
       const tokenB_balance = balances[0] / 10**6
+      const priceOfTokenB = tokenB_balance / tokenA_balance;
+      console.log('$'+priceOfTokenB)
 
       const poolPrice = Math.max(tokenA_balance, tokenB_balance) / Math.min(tokenA_balance, tokenB_balance)
 
@@ -102,9 +104,9 @@ class AgentSwap extends AgentBase {
       }
       // sell weth
       if(agentAction == 2){
-        const c = 0.1
+        const c = 1
         console.log('SELL WETH')
-        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()] * 10).toString(), 18)
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toString(), 18)
         // console.log(ethers.utils.formatUnits(amountIn,18) + '  amountIn')
 
         path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
@@ -123,6 +125,7 @@ class AgentSwap extends AgentBase {
         const data = {
           agent: this.name,
           action: "Sell WETH",
+          poolPrice: priceOfTokenB,
           value: priceImpact.toFixed(2)+ '%',
         };
         this.parentPort?.postMessage({ status: 'update', value: data})
@@ -147,8 +150,8 @@ class AgentSwap extends AgentBase {
       // buy weth
       else if(agentAction == 1){
         console.log('BUY WETH')
-        const c = 180
-        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()] * 10).toFixed(6).toString(), 6)
+        const c = 1800
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toFixed(6).toString(), 6)
         // console.log(ethers.utils.formatUnits(amountIn,6) + '  amountIn')
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]
@@ -167,6 +170,7 @@ class AgentSwap extends AgentBase {
         const data = {
           agent: this.name,
           action: "Buy WETH",
+          poolPrice: priceOfTokenB,
           value: priceImpact.toFixed(2)+ '%',
         };
         this.parentPort?.postMessage({ status: 'update', value: data})

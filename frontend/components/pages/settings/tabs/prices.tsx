@@ -9,17 +9,18 @@ import {
   } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Slider } from "@/components/ui/slider"
-import { TabsContent } from "@/components/ui/tabs"
-import { Luggage, Users, LineChart } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 export const Prices = ({
     params, setParams,
     data, runPrice,
     handleFileChange,
+    simulationStep,
 }: any) => {
+
+    useEffect(() => {
+      runPrice()
+    },[simulationStep])
 
     return(
         <> 

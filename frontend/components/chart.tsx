@@ -25,7 +25,7 @@ ChartJS.register(
   Filler,
   );
 
-export function Chart({ data }: any) {
+export function Chart({ data, size }: any) {
 
     const { theme, setTheme } = useTheme();
   
@@ -50,7 +50,7 @@ export function Chart({ data }: any) {
       elements:{
         point:{
             borderWidth: 0,
-            radius: 10,
+            radius: size == 'sm' ? 1 : 4,
             backgroundColor: 'rgba(0,0,0,0)'
         }
       },

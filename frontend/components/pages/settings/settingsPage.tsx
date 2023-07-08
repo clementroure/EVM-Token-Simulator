@@ -242,6 +242,7 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
           step: step.toString(),
           agent: result.value.agent,
           action: result.value.action,
+          poolPrice: result.value.poolPrice,
           value: result.value.value,
         };
         setSimulationResults(prevResults => [...prevResults, newRow]);
@@ -370,6 +371,7 @@ return (
                    params={params} setParams={setParams}
                    data={data} runPrice={runPrice}
                    handleFileChange={handleFileChange}
+                   simulationStep={simulationStep}
                 />
             </TabsContent>
             <TabsContent className='w-full mt-4 space-y-6' value="5">
