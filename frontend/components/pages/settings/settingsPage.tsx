@@ -61,8 +61,8 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
         { name: 'pair', address: '0x9cF9dA905a4A65312150Dea6B87242C54A37CE00' },
       ]);
       setTokenFields([
-        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a', decimals: 18, amount: 100 },
-        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3', decimals: 6, amount: 180000 },
+        { name: 'tokenA', address: '0xcf5C7863489e2Bf7E6CfB4E0af58c6258B43F73a', decimals: 18, amount: 1000 },
+        { name: 'tokenB', address: '0x0B96c74Bc073091484E6ab78aC56Ff2476465eD3', decimals: 6, amount: 1800000 },
       ]);
       setAgentFields([
         { name: 'swap_agent', number: 10 },
@@ -192,7 +192,8 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
         netlist: {
           simulationStep: simulationStep,
           autoMining: autoMining,
-        }
+        },
+        marketPrice: marketPrice,
       };
   
       socketRef.current!.send(JSON.stringify(params));
@@ -299,6 +300,11 @@ const [alertDialogConfig, setAlertDialogConfig] = useState({
     socketRef.current!.send(JSON.stringify(params));
   }
 
+  // for market price results
+  const [currentMarketPrice, setCurrentMarketPrice] = useState([marketPrice[0]]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [stepList, setStepList] = useState([0]);
+
 return (
     <div className='ml-10 space-y-6 w-full pr-10'>
 
@@ -388,6 +394,10 @@ return (
                   isSimulating={isSimulating}
                   isSimulationLoading={isSimulationLoading}
                   simulationResults={simulationResults}
+                  marketPrice={marketPrice}
+                  currentMarketPrice={currentMarketPrice} setCurrentMarketPrice={setCurrentMarketPrice}
+                  currentStep={currentStep} setCurrentStep={setCurrentStep}
+                  stepList={stepList} setStepList={setStepList}
                 />
             </TabsContent>
           </Tabs>
