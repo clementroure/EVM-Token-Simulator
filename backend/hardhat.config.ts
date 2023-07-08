@@ -24,7 +24,6 @@ const config: HardhatUserConfig = {
       forking: {
         url: process.env.ALCHEMY_URL as string,
       },
-      // gasPrice: 20000000000 // 20 gwei
     },
     testnet: {
       url:  process.env.ALCHEMY_URL as string,

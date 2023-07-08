@@ -7,12 +7,13 @@ import { ethers } from "hardhat";
 class AgentBorrower extends AgentBase {
 
     constructor(
-      name: string, wallet: SignerWithAddress, printer: Printer,
+      name: string,  parentPort:MessagePort | null, wallet: SignerWithAddress, printer: Printer,
       getStep: Function, setTrackedResults: Function,
       distributions?: { [key: string]: number[] }, contracts?: { [key: string]: Contract }
       ) {
       super(
         name,
+        parentPort,
         wallet, 
         printer,
         getStep,

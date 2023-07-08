@@ -104,7 +104,7 @@ class AgentSwap extends AgentBase {
       if(agentAction == 2){
         const c = 0.1
         console.log('SELL WETH')
-        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toString(), 18)
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()] * 10).toString(), 18)
         // console.log(ethers.utils.formatUnits(amountIn,18) + '  amountIn')
 
         path = [ this.contracts!['tokenA'].address,  this.contracts!['tokenB'].address]
@@ -148,7 +148,7 @@ class AgentSwap extends AgentBase {
       else if(agentAction == 1){
         console.log('BUY WETH')
         const c = 180
-        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()]).toFixed(6).toString(), 6)
+        amountIn = ethers.utils.parseUnits((c * this.distributions!['normal'][this.getStep()] * 10).toFixed(6).toString(), 6)
         // console.log(ethers.utils.formatUnits(amountIn,6) + '  amountIn')
 
         path = [ this.contracts!['tokenB'].address,  this.contracts!['tokenA'].address]

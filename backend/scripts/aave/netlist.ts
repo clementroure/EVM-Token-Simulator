@@ -35,12 +35,15 @@ export default async function main() {
     agents: agents,
     trackedResults: [0,0],
     contracts: contracts,
-    tokens: tokens
+    tokens: tokens,
+    marketPrice: [],
+    parentPort: null,
   }
   // Start the simulation using params
   const _simulator = new Simulator(params)
-  await _simulator.start()
+  await _simulator.init(true, true, true, contracts, agents);
+  await _simulator.start();
 }
 
-// main()
-//     .catch((error) => console.error("Error simulating scenario: ", error))
+main()
+.catch((error) => console.error("Error simulating scenario: ", error))

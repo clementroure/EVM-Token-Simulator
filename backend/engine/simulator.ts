@@ -30,6 +30,7 @@ export default class Simulator{
    distributions?: { [key: string]: number[] } = {}
    contracts?: { [key: string]: Contract } = {}
    tokens?: Token[]
+   marketPrice: number[]
    parentPort: MessagePort | null
 
    constructor(params: {
@@ -39,12 +40,14 @@ export default class Simulator{
     trackedResults: number[],
     contracts: MyContractFactory[],
     tokens: Token[],
+    marketPrice: number[],
     parentPort: MessagePort | null
    }){
     this.simulationDuration = params.simulationDuration
     this.trackedResults = params.trackedResults
     this.printer = new Printer(params.trackedResults)
     this.tokens = params.tokens
+    this.marketPrice = params.marketPrice
     this.parentPort = params.parentPort
     
     // this.init(params.normalDistribution, params.poissonDistribution, params.binomialDistribution, params.contracts, params.agents)
@@ -158,15 +161,15 @@ export default class Simulator{
 
      console.log('step: ' + this.step)
      // MARKET PRICE
-     const initialPrice = 1800; // Assuming initial price P_t = 1800
+/*      const initialPrice = 1800; // Assuming initial price P_t = 1800
      const u = 1; // Average price
      const sigma = 0.2 * u; // Volatility (standard deviation)
      const dt = 0.001; // Time interval
+     const marketPrice = calculateBlackScholesPrice(initialPrice, u, sigma, dt).toFixed(2) */
+     const marketPrice = this.marketPrice[this.step]
+     // console.log('Market Price = $' + marketPrice)
 
-     const marketPrice = calculateBlackScholesPrice(initialPrice, u, sigma, dt).toFixed(2)
-     console.log('Market Price = $' + marketPrice)
-
-     const epsilonPrice = parseFloat(marketPrice)/10000 // 0.01 %
+     const epsilonPrice = marketPrice/10000 // 0.01 %
      let params = {
         marketPrice: marketPrice,
         epsilonPrice: epsilonPrice,

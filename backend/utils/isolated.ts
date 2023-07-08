@@ -1,4 +1,4 @@
-import { Isolate } from 'isolated-vm';
+/* import { Isolate } from 'isolated-vm';
 
 export default function runHostileCode(code:string, memoryLimit: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -28,4 +28,6 @@ export default function runHostileCode(code:string, memoryLimit: number): Promis
       });
 
   });
-}
+} */
+
+export {}

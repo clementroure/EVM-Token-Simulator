@@ -1,12 +1,12 @@
 
-import runHostileCode from './isolated'
+// import runHostileCode from './isolated'
 import axios from 'axios';
 import * as dotenv from "dotenv";
 dotenv.config();
 
 export const isolate = async (event:any) => {
-    const success = await runHostileCode(event.data.code, 128)
-    console.log('isloated code run: ' + success)
+/*     const success = await runHostileCode(event.data.code, 128)
+    console.log('isloated code run: ' + success) */
   }
   
   export async function getABI(address: string, network: string = 'goerli') {

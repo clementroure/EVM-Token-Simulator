@@ -12,12 +12,13 @@ const { JsonRpcProvider } = ethers.providers
 const { testUtils } = require('hardhat')
 const { block } = testUtils
 
-export default async function uniswap_v2({ parentPort, contracts: _contracts, tokens, agents, netlist }: {
+export default async function uniswap_v2({ parentPort, contracts: _contracts, tokens, agents, netlist, marketPrice }: {
   parentPort: MessagePort | null; 
   contracts: MyContractFactory[]; 
   tokens: Token[];
   agents: any;
   netlist: any;
+  marketPrice: number[]
 }) {
 
   /* if(netlist.autoMining == false){
@@ -104,7 +105,8 @@ export default async function uniswap_v2({ parentPort, contracts: _contracts, to
     trackedResults: [reserves[0], reserves[1]],
     contracts: _contracts,
     tokens: tokens,
-    parentPort: parentPort
+    marketPrice: marketPrice,
+    parentPort: parentPort,
   }
 
   // in netlist.ts
